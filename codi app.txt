@@ -1,0 +1,620 @@
+
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Conflictometer</title>
+    
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Conflictometer">
+    <link rel="apple-touch-icon" href="logo_app.jpg">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script id="lucide-script" src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+            background-image: url('fondo.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            overscroll-behavior-y: none;
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        .avatar-float { animation: float 3s ease-in-out infinite; }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        .avatar-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .hidden { display: none !important; }
+        
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .footer-credits {
+            font-size: 0.65rem;
+            color: #64748b;
+            margin-top: 0.5rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 0.5rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <!-- Modal d'Ajuda (Dinàmic) -->
+    <div id="help-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4 animate-in fade-in zoom-in duration-200">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <button onclick="document.getElementById('help-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+            <h3 class="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <span id="modal-title">Guia</span>
+            </h3>
+            <div id="modal-content" class="space-y-3 text-sm text-slate-600">
+                <!-- Content injected via JS -->
+            </div>
+            <button onclick="document.getElementById('help-modal').classList.add('hidden')" class="w-full mt-6 bg-blue-100 text-blue-700 py-2 rounded-lg font-bold hover:bg-blue-200 transition-colors">
+                Tancar
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div id="app-container" class="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden min-h-[600px] flex flex-col relative" style="background-color: rgba(255, 255, 255, 0.96);">
+        
+        <!-- Header -->
+        <header class="bg-blue-900 text-white p-4 flex items-center justify-between relative z-10 shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 bg-white rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
+                    <img id="app-logo-img" src="logo_app.jpg" alt="APP" class="w-full h-full object-cover" onerror="this.style.display='none'; document.getElementById('logo-fallback-text').style.display='flex'">
+                    <div id="logo-fallback-text" class="hidden w-full h-full items-center justify-center text-blue-900 font-bold text-[10px] leading-none text-center">APP</div>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight leading-tight" id="header-title">Conflictometer</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-1">
+                <button id="btn-back" onclick="window.goBack()" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white hidden" title="Enrere">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                </button>
+                <button onclick="window.navigateTo('language_selection')" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white" title="Inici">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <main id="content" class="flex-grow p-6 flex flex-col items-center justify-center text-slate-700 fade-in relative z-0 overflow-y-auto custom-scrollbar">
+            <div class="animate-pulse flex flex-col items-center">
+                <div class="h-8 w-8 bg-blue-200 rounded-full mb-2"></div>
+                <p class="text-slate-400 text-sm">Carregant...</p>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-slate-50/80 p-4 text-center text-xs text-slate-400 border-t">
+            <div class="footer-credits">
+                <p class="font-bold text-slate-600">Creat per Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)</p>
+                <div class="flex items-center justify-center gap-2 mt-2 opacity-70">
+                    <img src="logo giam.jpg" alt="GIAM" class="h-6 object-contain">
+                    <div id="connection-status" class="text-[9px]">...</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase & App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- CONFIG FIREBASE ---
+        const myFirebaseConfig = {
+            apiKey: "AIzaSyBmI3KXNf71YI95HKNyJggANafY8cNV2DQ",
+            authDomain: "giam-4e2f2.firebaseapp.com",
+            projectId: "giam-4e2f2",
+            storageBucket: "giam-4e2f2.firebasestorage.app",
+            messagingSenderId: "738484274806",
+            appId: "1:738484274806:web:2482d1d17c6f7930044157",
+            measurementId: "G-NVTYLW7P7T"
+        };
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myFirebaseConfig;
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'giam-app-research'; 
+
+        let db; let auth; let currentUser = null;
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            const initAuth = async () => {
+                try {
+                    await signInAnonymously(auth);
+                } catch (error) { console.error("Auth Error"); }
+            };
+            initAuth();
+            onAuthStateChanged(auth, (user) => { 
+                if (user) { 
+                    currentUser = user; 
+                    const st = document.getElementById('connection-status');
+                    if(st) { st.innerText = "Online"; st.className = "text-[9px] text-green-600"; }
+                    syncOfflineData();
+                } 
+            });
+            window.addEventListener('online', syncOfflineData);
+        } catch (e) { console.warn("Init Error"); }
+
+        async function syncOfflineData() {
+            if (!db || !currentUser) return;
+            const pending = JSON.parse(localStorage.getItem('giam_pending_conflicts') || '[]');
+            if (pending.length === 0) return;
+            const st = document.getElementById('connection-status');
+            if(st) st.innerText = "Sincronitzant...";
+            const newPending = [];
+            for (const data of pending) {
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'giam_responses'), { 
+                        ...data, timestamp: serverTimestamp(), authUid: currentUser.uid, appVersion: "5.60 (synced)" 
+                    });
+                } catch (e) { newPending.push(data); }
+            }
+            localStorage.setItem('giam_pending_conflicts', JSON.stringify(newPending));
+            if(st) st.innerText = newPending.length > 0 ? "Pendent: " + newPending.length : "Online (Sincronitzat)";
+        }
+
+        // --- DICCIONARI D'IDIOMES ---
+        const translations = {
+            ca: {
+                app_name: "Conflictometer",
+                intro_title: "Benvingut/da",
+                intro_text: "Aquesta eina t'ajudarà a identificar i gestionar els conflictes motors.",
+                intro_select: "Tria qui vols que t'acompanyi:",
+                btn_start: "Començar", btn_continue: "Continuar", btn_accept: "Acceptar i Continuar", btn_understand: "Entesos, continuar", btn_back_home: "Tornar a l'inici",
+                yes: "Sí", no: "No", 
+                context_title: "Context d'aplicació", context_intro: "Hola! Soc {name}. Situa'm una mica: <strong>En quin context et trobes?</strong>",
+                
+                ctx_formal: "Educació Formal (Educació Física)", 
+                ctx_sport: "Activitat Esportiva (Federat / Extraescolar)", 
+                ctx_other: "Altres (Estades, esplai, lleure, esbarjo...)",
+                
+                user_title: "Identificació i Consentiment", user_intro: "Necessito algunes dades bàsiques per a la recerca. No pateixis, tot és <strong>totalment anònim</strong>.",
+                lbl_id: "ID Usuari / Pseudònim", lbl_age: "Edat", lbl_sex: "Sexe", opt_woman: "Dona", opt_man: "Home", opt_other: "Altres", lbl_loc: "Localitat", lbl_country: "País",
+                consent_text: "<strong>Consentiment Informat:</strong> Accepto compartir les dades per a objectius acadèmics. Entenc que les dades seran tractades de forma anònima.",
+                
+                scenario_title: "Escenari del Conflicte", 
+                scenario_intro: "Molt bé. Ara descriu-me l'escenari on ha passat el conflicte.", 
+                scenario_dom: "Tipus de situació motriu", 
+                dom_psico: "Psicomotor", dom_coop: "Cooperació", dom_op: "Oposició", dom_coop_op: "Cooperació-Oposició",
+                lbl_comp: "Hi ha resultat final? (Guanyadors/es-perdedors/es)", lbl_group: "Grup / Classe",
+                
+                help_title_scen: "Tipus de Situació Motriu",
+                help_psico: "<strong>Psicomotor:</strong> No hi ha companys/es ni adversaris.",
+                help_coop: "<strong>Cooperació:</strong> Només hi ha companys/es.",
+                help_op: "<strong>Oposició:</strong> Només hi ha adversaris.",
+                help_coop_op: "<strong>Cooperació-Oposició:</strong> Hi ha companys/es i adversaris al mateix temps.",
+
+                help_title_role: "Definició de Rols",
+                help_title_agent_def: "Agent Generador Conflictiu",
+                help_text_agent_def: "És la persona que inicia el conflicte, realitzant l'acció que provoca el desacord.",
+                help_title_reaction_def: "Resposta a l'estímul conflictiu",
+                help_text_reaction_def: "És la persona, que rep l'acció inicial i hi respon, generant la segona part del conflicte.",
+                
+                help_title_group: "Tipus d'Agrupament",
+                help_p_indiv: "<strong>Un/a sol/a alumne/a:</strong> Una única persona.",
+                help_p_pair: "<strong>Una parella:</strong> Dues persones.",
+                help_p_small: "<strong>Petit grup:</strong> De 3 a 6 persones.",
+                help_p_big: "<strong>Tot el grup:</strong> L'equip sencer o la classe.",
+
+                part_title: "Protagonistes", 
+                lbl_p1: "Persona 1 (Acció)", lbl_p2: "Persona 2 (Reacció)",
+                lbl_status: "Resultat", st_win: "Guanyador", st_lose: "Perdedor", st_none: "Neutre",
+                lbl_desc_act: "Quina acció ha fet?", lbl_desc_reac: "Quina reacció ha fet?",
+                
+                opt_masc: "Home", opt_fem: "Dona", opt_other: "Altres",
+                
+                act_title: "Què ha passat?", act_q: "Tria l'acció que ha provocat el conflicte:",
+                cat_verbal: "Problemes al pactar (Desacords al moment de pactar)", 
+                cat_mismatch: "Acció involuntària (Fer una acció de manera inconscient)", 
+                cat_perverse: "Acció voluntària (Fer una acció incorrecta de manera conscient)",
+                
+                sub_v1: "I. No s'han posat d'acord", sub_v2: "II. Ha trencat el pacte",
+                sub_m1: "I. S'ha equivocat (manca de destresa)", sub_m2: "II. Ha fet mal a algú (sense voler)",
+                sub_p1: "I. Ha fet trampes", sub_p2: "II. Ho ha fet malament expressament", 
+                sub_p3: "III. Agressió Física (voluntària)", sub_p4: "IV. Agressió verbal (insult)",
+                
+                reac_title: "Reacció", reac_q: "Com ha respost l'altra persona?",
+                reac_verb: "Insults (Agressió verbal)", 
+                reac_phys: "Cops o empentes (Agressió física)", 
+                reac_mix: "Les dues coses alhora (Agressió verbal i física)",
+                
+                final_res_title: "Quin tipus de conflicte motor s'ha generat?", final_type: "Tipus de CM", final_gender: "Gènere del Conflicte",
+                gen_mm: "Masculí (Home-Home)", gen_ff: "Femení (Dona-Dona)", gen_mf: "Mixte (Home-Dona)", gen_fm: "Mixte (Dona-Home)",
+                lbl_res_desc: "Format per:", res_action: "Acció:", res_reaction: "Reacció:",
+                saved: "✓ Dades guardades", saved_offline: "⚠ Guardat al mòbil (Pendent d'enviar)",
+                lbl_another_conflict: "Hi ha hagut un altre conflicte en aquesta sessió?", btn_new_conflict: "Sí (Registrar nou)", btn_end_session: "No (Finalitzar)",
+                session_report_title: "Resum de la Sessió", session_report_text: "Sessió finalitzada correctament. Gràcies per la teva col·laboració!", session_count: "Conflictes registrats:", session_new_btn: "Nova Sessió",
+                session_contact: "per a més informació contactar amb: <a href='mailto:paulaplapla98@gmail.com' class='underline text-blue-600'>paulaplapla98@gmail.com</a>",
+                th_low: "Baixa Conflictivitat", th_med: "Mitjana Conflictivitat", th_high: "Alta Conflictivitat",
+                lbl_avg_temp: "Mitjana Termòmetre", lbl_gender_breakdown: "Per Gènere", gender_m: "Masc (H-H)", gender_f: "Fem (D-D)", gender_x: "Mixte (H-D)",
+                lbl_table_title: "Detall de Conflictes", tbl_type: "Tipus", tbl_action: "Acció"
+            },
+            es: {
+                app_name: "Conflictómetro",
+                intro_title: "Bienvenid@",
+                intro_text: "Esta herramienta te ayudará a identificar y gestionar los conflictos motores.",
+                intro_select: "Elige quién quieres que te acompañe:",
+                context_title: "Contexto de aplicación", context_intro: "¡Hola! Soy {name}. Sitúame un poco: <strong>¿En qué contexto te encuentras?</strong>",
+                ctx_formal: "Educación Formal (Educación Física)", 
+                ctx_sport: "Actividad Deportiva (Federado / Extraescolar)", 
+                ctx_other: "Otros (Estancias, tiempo libre, ocio, recreo...)",
+                user_title: "Identificación y Consentimiento", 
+                user_intro: "Necesito algunos datos básicos para la investigación. No sufras, todo es <strong>totalmente anónimo</strong>.",
+                lbl_id: "ID Usuario / Pseudónimo", lbl_age: "Edad", lbl_sex: "Sexo", lbl_loc: "Localidad", lbl_country: "País",
+                opt_woman: "Mujer", opt_man: "Hombre", opt_other: "Otros",
+                consent_text: "<strong>Consentimiento Informado:</strong> Acepto compartir los datos para objetivos académicos. Entiendo que los datos serán tratados de forma anónima.",
+                scenario_title: "Escenario del Conflicto", scenario_intro: "Muy bien. Ahora descríbeme el escenario donde ha ocurrido el conflicto.",
+                scenario_dom: "Tipo de situación motriz",
+                dom_psico: "Psicomotor", dom_coop: "Cooperación", dom_op: "Oposición", dom_coop_op: "Cooperación-Oposición",
+                help_psico: "<strong>Psicomotor:</strong> No hay compañeros/as ni adversarios.",
+                help_coop: "<strong>Cooperación:</strong> Solo hay compañeros/as.",
+                help_op: "<strong>Oposición:</strong> Solo hay adversarios.",
+                help_coop_op: "<strong>Cooperación-Oposición:</strong> Hay compañeros/as y adversarios al mismo tiempo.",
+                part_title: "Protagonistas", lbl_p1: "Persona 1 (Acción)", lbl_p2: "Persona 2 (Reacción)",
+                lbl_status: "Resultado", st_win: "Ganador", st_lose: "Perdedor", st_none: "Neutre",
+                opt_masc: "Hombre", opt_fem: "Mujer", opt_other: "Otros",
+                act_title: "¿Qué ha pasado?", act_q: "Elige la acción que ha provocado el conflicto:",
+                cat_verbal: "Problemes al pactar (Desacuerdos al pactar)", 
+                cat_mismatch: "Acción involuntaria (Acción inconsciente)", 
+                cat_perverse: "Acción voluntaria (Acción incorrecta consciente)",
+                sub_v1: "I. No se han puesto de acuerdo", sub_v2: "II. Ha roto el pacto",
+                sub_m1: "I. Se ha equivocado (falta de destreza)", sub_m2: "II. Ha hecho daño (sin querer)",
+                sub_p1: "I. Ha hecho trampas", sub_p2: "II. Lo ha hecho mal a propósito", sub_p3: "III. Agresión Física (voluntaria)", sub_p4: "IV. Agresión verbale (insulto)",
+                reac_title: "Reacción", reac_q: "¿Cómo ha respondido la otra persona?",
+                reac_verb: "Insultos (Agresión verbale)", reac_phys: "Golpes o empujones (Agresión física)", reac_mix: "Las dos cosas a la vez (Agresión verbale y física)",
+                final_res_title: "¿Qué tipo de conflicto motor se ha generado?", final_type: "Tipo de CM", final_gender: "Género del Conflicto",
+                saved: "✓ Datos guardados", saved_offline: "⚠ Guardado en móvil (Pendiente enviar)",
+                session_report_title: "Resumen de Sesión", session_contact: "para más información contactar con: <a href='mailto:paulaplapla98@gmail.com'>paulaplapla98@gmail.com</a>"
+            },
+            en: {
+                app_name: "Conflictometer",
+                intro_title: "Welcome",
+                intro_text: "This tool will help you identify and manage motor conflicts.",
+                intro_select: "Choose your companion:",
+                context_title: "Application Context", context_intro: "Hi! I'm {name}. First, give me some context: <strong>Where are you?</strong>",
+                ctx_formal: "Formal Education", ctx_sport: "Club Sports", ctx_other: "Other (Camps, leisure, recreation...)",
+                user_title: "ID & Consent", user_intro: "I need some basic data for research. Everything is <strong>anonymous</strong>.",
+                lbl_id: "User ID", lbl_age: "Age", lbl_sex: "Sex", lbl_loc: "City/Locality", lbl_country: "Country",
+                opt_woman: "Female", opt_man: "Male", opt_other: "Other",
+                consent_text: "<strong>Informed Consent:</strong> I agree to share data for academic purposes. Data is treated anonymously.",
+                scenario_title: "Conflict Scenario", scenario_intro: "Now describe the scenario.",
+                scenario_dom: "Motor situation type",
+                dom_psico: "Psychomotor", dom_coop: "Cooperation", dom_op: "Opposition", dom_coop_op: "Coop-Opposition",
+                help_psico: "<strong>Psychomotor:</strong> No partners or opponents.",
+                help_coop: "<strong>Cooperation:</strong> Only partners.",
+                help_op: "<strong>Opposition:</strong> Only opponents.",
+                help_coop_op: "<strong>Coop-Opposition:</strong> Both at the same time.",
+                lbl_comp: "Final Result?", lbl_group: "Group / Class",
+                part_title: "Protagonists", lbl_p1: "Person 1 (Action)", lbl_p2: "Person 2 (Reaction)",
+                lbl_status: "Result", st_win: "Winner", st_lose: "Loser", st_none: "Neutral",
+                opt_masc: "Male", opt_fem: "Female", opt_other: "Other",
+                act_title: "What happened?", act_q: "Select the action:",
+                cat_verbal: "Pact Issues", cat_mismatch: "Involuntary (Unconscious)", cat_perverse: "Voluntary (Consciously incorrect)",
+                reac_title: "Reaction", reac_q: "How did they respond?",
+                final_res_title: "Motor conflict generated", final_type: "MC Type", final_gender: "Conflict Gender",
+                saved: "✓ Data saved", saved_offline: "⚠ Saved offline",
+                session_report_title: "Session Summary", session_contact: "info: <a href='mailto:paulaplapla98@gmail.com'>paulaplapla98@gmail.com</a>"
+            },
+            fr: {
+                app_name: "Conflictomètre",
+                intro_title: "Bienvenue",
+                intro_text: "Cet outil vous aidera à identifier et à gérer les conflits moteurs.",
+                intro_select: "Choisissez qui vous accompagne :",
+                context_title: "Contexte d'application", context_intro: "Bonjour ! Je suis {name}. D'abord, situez-moi : <strong>Dans quel contexte vous trouvez-vous ?</strong>",
+                ctx_formal: "Éducation Formelle (EPS)", 
+                ctx_sport: "Activité Sportive (Fédérée / Périscolaire)", 
+                ctx_other: "Autres (Séjours, loisirs, récréation...)",
+                user_title: "Identification et Consentement", user_intro: "J'ai besoin de quelques données de base pour la recherche. Tout est <strong>totalement anonyme</strong>.",
+                lbl_id: "ID Utilisateur / Pseudonyme", lbl_age: "Âge", lbl_sex: "Sexe", lbl_loc: "Localité", lbl_country: "Pays",
+                opt_woman: "Femme", opt_man: "Homme", opt_other: "Autres",
+                consent_text: "<strong>Consentement Éclairé :</strong> J'accepte de partager les données à des fins académiques.",
+                scenario_title: "Scénario du Conflit", scenario_intro: "Très bien. Décrivez maintenant le scénario où le conflit a eu lieu.",
+                scenario_dom: "Type de situation motrice",
+                dom_psico: "Psychomoteur", dom_coop: "Coopération", dom_op: "Opposition", dom_coop_op: "Coop-Opposition",
+                help_psico: "<strong>Psychomoteur :</strong> Pas de partenaires ni d'adversaires.",
+                help_coop: "<strong>Coopération :</strong> Uniquement des partenaires.",
+                help_op: "<strong>Opposition :</strong> Uniquement des adversaires.",
+                help_coop_op: "<strong>Coop-Opposition :</strong> Partenaires et adversaires en même temps.",
+                part_title: "Protagonistes", lbl_p1: "Personne 1 (Action)", lbl_p2: "Personne 2 (Réaction)",
+                lbl_status: "Résultat", st_win: "Gagnant", st_lose: "Perdant", st_none: "Neutre",
+                opt_masc: "Homme", opt_fem: "Femme", opt_other: "Autres",
+                act_title: "Que s'est-il passé ?", act_q: "Choisissez l'action qui a provoqué le conflit :",
+                cat_verbal: "Problèmes de pacte (Désaccords lors du pacte)", 
+                cat_mismatch: "Action involontaire (Action inconsciente)", 
+                cat_perverse: "Action volontaire (Action incorrecte consciente)",
+                sub_v1: "I. Ils ne sont pas tombés d'accord", sub_v2: "II. Le pacte a été rompu",
+                sub_m1: "I. Erreur (manque d'adresse)", sub_m2: "II. Quelqu'un a été blessé (sans le vouloir)",
+                sub_p1: "I. Triche", sub_p2: "II. Mal fait exprès", sub_p3: "III. Agression Physique (volontaire)", sub_p4: "IV. Agression verbale (insulte)",
+                reac_title: "Réaction", reac_q: "Comment l'autre personne a-t-elle répondu ?",
+                reac_verb: "Insultes (Agression verbale)", reac_phys: "Coups ou bousculades (Agression physique)", reac_mix: "Les deux à la fois (Agression verbale et physique)",
+                final_res_title: "Quel type de conflit moteur a été généré ?", final_type: "Type de CM", final_gender: "Genre du Conflit",
+                saved: "✓ Données enregistrées", saved_offline: "⚠ Enregistré localement (En attente)",
+                session_report_title: "Résumé de la session", session_contact: "info : <a href='mailto:paulaplapla98@gmail.com'>paulaplapla98@gmail.com</a>"
+            }
+        };
+
+        // --- STATE ---
+        const state = {
+            step: 'language_selection',
+            history: [],
+            data: {
+                lang: 'ca', avatarType: 'female', 
+                userId: '', age: '', sex: '', locality: '', country: '', consent: false, context: '',
+                domain: '', competition: '', group: '',
+                p1: { status: '', sex: '', desc: '' },
+                p2: { status: '', sex: '', desc: '' },
+                actionCat: 0, actionSub: 0, reaction: 0, 
+                conflictType: '', thermometer: 0, genderMix: '',
+                agentProfile: '', reactionProfile: '',
+                sessionConflictCount: 0,
+                sessionHistory: [],
+                actionText: '', reactionText: ''
+            }
+        };
+
+        // --- HELPERS ---
+        function t(key) {
+            const lang = state.data.lang || 'ca';
+            let text = translations[lang][key] || translations['ca'][key] || key;
+            if (text.includes('{name}')) text = text.replace('{name}', getName());
+            return text;
+        }
+
+        function getProfessorAvatar(size = "large", expression = "neutral", typeOverride = null) {
+            const wh = size === "large" ? "w-28 h-28" : "w-16 h-16";
+            const currentType = typeOverride || state.data.avatarType;
+            const mouth = expression === "happy" ? "M9 14s1.5 2 3 2 3-2 3-2" : (expression === "serious" ? "M9 15h6" : "M9 14s1.5 1 3 1 3-1 3-1");
+            let hairPath = "";
+            if (currentType === 'female') {
+                hairPath = `<path d="M12 2 C 7 2 5 6 5 10 L 5 14 C 5 15.5 6 16.5 7.5 16.5 L 16.5 16.5 C 18 16.5 19 15.5 19 14 L 19 10 C 19 6 17 2 12 2 Z" fill="#4a3b32" stroke="none"/><circle cx="12" cy="8" r="4.2" fill="#ffedd5" stroke="#fdba74"/>`;
+            } else {
+                hairPath = `<circle cx="12" cy="7" r="4" fill="#ffedd5" stroke="#fdba74"/><path d="M12 2.5c-3 0-4.5 1.5-4.5 4v1h9v-1c0-2.5-1.5-4-4.5-4z" fill="#334155" stroke="none"/><path d="M7.5 6.5v1.5" stroke="#334155" stroke-width="0.5"/>`;
+            }
+            const glasses = `<circle cx="10.5" cy="7" r="1.2" fill="white" stroke="currentColor" stroke-width="0.5"/><circle cx="13.5" cy="7" r="1.2" fill="white" stroke="currentColor" stroke-width="0.5"/><path d="M11.7 7h0.6" stroke="currentColor" stroke-width="0.5"/>`;
+            return `<div class="${wh} bg-white rounded-full border-4 border-blue-100 shadow-md flex items-center justify-center mx-auto mb-4 ${size === 'large' ? 'avatar-float' : ''} overflow-hidden relative"><svg viewBox="0 0 24 24" class="w-full h-full text-slate-800 transform translate-y-1" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" fill="#bfdbfe" stroke="#60a5fa"/><path d="M12 15v6" stroke="#60a5fa" stroke-width="0.5" opacity="0.5"/>${hairPath}${glasses}<path d="${mouth}" stroke="#be123c" stroke-width="1"/></svg></div>`;
+        }
+
+        function getName() {
+            const t = state.data.avatarType;
+            if (state.data.lang === 'ca') return t === 'female' ? "la Pilar" : "en Joan";
+            return t === 'female' ? "Pilar" : "Joan";
+        }
+
+        // --- NAVIGATION & LOGIC ---
+        window.setLanguage = (lang) => { state.data.lang = lang; document.getElementById('header-title').innerText = t('app_name'); window.navigateTo('intro'); };
+        window.selectAvatar = (type) => { state.data.avatarType = type; window.navigateTo('context'); };
+        window.selectContext = (value, nextStep) => { state.data.context = value; window.navigateTo(nextStep); };
+        window.navigateTo = (step) => {
+            if(step === 'language_selection') state.history = [];
+            else state.history.push(state.step);
+            state.step = step;
+            render();
+        };
+        window.goBack = () => { if(state.history.length) { state.step = state.history.pop(); render(); } };
+        window.openHelp = (type) => {
+             const modal = document.getElementById('help-modal');
+             const title = document.getElementById('modal-title');
+             const content = document.getElementById('modal-content');
+             if (type === 'scenario') {
+                 title.innerText = t('help_title_scen');
+                 content.innerHTML = `<div class="p-3 bg-blue-50 rounded mb-2 border border-blue-100">${t('help_psico')}</div><div class="p-3 bg-green-50 rounded mb-2 border border-green-100">${t('help_coop')}</div><div class="p-3 bg-orange-50 rounded mb-2 border border-orange-100">${t('help_op')}</div><div class="p-3 bg-purple-50 rounded mb-2 border border-purple-100">${t('help_coop_op')}</div>`;
+             } else if (type === 'agent_def') {
+                 title.innerText = t('help_title_agent_def');
+                 content.innerHTML = `<div class="p-3 bg-blue-50 rounded mb-2 border border-blue-100">${t('help_text_agent_def')}</div>`;
+             } else if (type === 'reaction_def') {
+                 title.innerText = t('help_title_reaction_def');
+                 content.innerHTML = `<div class="p-3 bg-orange-50 rounded mb-2 border border-orange-100">${t('help_text_reaction_def')}</div>`;
+             }
+             modal.classList.remove('hidden');
+        };
+        window.saveUser = () => {
+             const uid = document.getElementById('uid').value;
+             const age = document.getElementById('uage').value;
+             const sex = document.getElementById('usex').value;
+             const loc = document.getElementById('uloc').value;
+             const country = document.getElementById('ucountry').value;
+             const consent = document.getElementById('input-consent').checked;
+             if(!uid || !age || !sex || !loc || !country) return alert("Si us plau, omple tots els camps.");
+             if(!consent) return alert("Has d'acceptar el consentiment.");
+             state.data.userId = uid; state.data.age = age; state.data.sex = sex; state.data.locality = loc; state.data.country = country; state.data.consent = true;
+             window.navigateTo('scenario_analysis');
+        };
+        window.saveScenario = () => {
+             const grp = document.getElementById('grp').value;
+             if(!grp) return alert("Si us plau, indica el grup/classe.");
+             state.data.group = grp;
+             state.data.domain = document.getElementById('dom').value;
+             state.data.competition = document.getElementById('comp').value;
+             window.navigateTo('participants_input');
+        };
+        window.saveParticipants = () => {
+             const d1 = document.getElementById('p1d').value;
+             const d2 = document.getElementById('p2d').value;
+             if(!d1 || !d2) return alert("Si us plau, descriu l'acció i la reacció.");
+             state.data.p1 = { status: document.getElementById('p1s') ? document.getElementById('p1s').value : 'Neutre', sex: document.getElementById('p1x').value, desc: d1 };
+             state.data.p2 = { status: document.getElementById('p2s') ? document.getElementById('p2s').value : 'Neutre', sex: document.getElementById('p2x').value, desc: d2 };
+             window.navigateTo('conflict_action_main');
+        };
+        window.selectActionCat = (cat) => { state.data.actionCat = cat; window.navigateTo('conflict_action_sub'); };
+        window.selectActionSub = (sub, key) => { state.data.actionSub = sub; state.data.actionText = t(key); window.navigateTo('conflict_reaction'); };
+        window.selectReaction = (r, key) => { state.data.reaction = r; state.data.reactionText = t(key); calculateResult(); };
+
+        function calculateResult() {
+            const ac = state.data.actionCat;
+            const re = state.data.reaction;
+            let type = "Unknown";
+            if (ac === 1) { 
+                if (re === 1) type = "Tipus I"; else if (re === 2) type = "Tipus II"; else if (re === 3) type = "Tipus IV"; 
+            } else if (ac === 2) { 
+                if (re === 1) type = "Tipus III"; else if (re === 2) type = "Tipus V"; else if (re === 3) type = "Tipus VII";
+            } else if (ac === 3) { 
+                if (re === 1) type = "Tipus VI"; else if (re === 2) type = "Tipus VIII"; else if (re === 3) type = "Tipus IX";
+            }
+            state.data.conflictType = type; state.data.thermometer = ac + re; 
+            const s1 = state.data.p1.sex; const s2 = state.data.p2.sex;
+            let gm = "Altres";
+            if (s1 === 'M' && s2 === 'M') gm = t('gen_mm'); else if (s1 === 'F' && s2 === 'F') gm = t('gen_ff'); else if (s1 === 'M' && s2 === 'F') gm = t('gen_mf'); else if (s1 === 'F' && s2 === 'M') gm = t('gen_fm');
+            state.data.genderMix = gm; window.navigateTo('calc_result');
+        }
+
+        async function saveToCloud() {
+            state.data.sessionHistory.push({ type: state.data.conflictType, score: state.data.thermometer, gender: state.data.genderMix, action: state.data.actionText });
+            if (!db || !currentUser) {
+                const fb = document.getElementById('save-msg'); 
+                if(fb) { fb.innerText = t('saved_offline'); fb.classList.remove('hidden', 'bg-green-50', 'text-green-700'); fb.classList.add('bg-orange-50', 'text-orange-700'); }
+                return;
+            }
+            try { 
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'giam_responses'), { ...state.data, timestamp: serverTimestamp(), authUid: currentUser.uid, appVersion: "5.60" }); 
+                const fb = document.getElementById('save-msg'); if(fb) { fb.innerText = t('saved'); fb.classList.remove('hidden'); }
+            } catch (e) { const fb = document.getElementById('save-msg'); if(fb) { fb.innerText = t('saved_offline'); fb.classList.remove('hidden'); fb.classList.add('bg-orange-50', 'text-orange-700'); } }
+        }
+        window.saveToCloud = saveToCloud;
+
+        window.nextConflict = () => {
+            state.data.p1 = { status: '', sex: '', desc: '' }; state.data.p2 = { status: '', sex: '', desc: '' };
+            state.data.actionCat = 0; state.data.actionSub = 0; state.data.reaction = 0; state.data.conflictType = ''; state.data.thermometer = 0; state.data.genderMix = ''; state.data.actionText = ''; state.data.reactionText = '';
+            window.navigateTo('scenario_analysis');
+        };
+
+        window.finishSession = () => { window.navigateTo('session_summary'); };
+
+        function render() {
+            const container = document.getElementById('content');
+            const step = state.step;
+            let html = '';
+            
+            if (step === 'language_selection') {
+                html = `<div class="text-center py-8">
+                    <h2 class="text-2xl font-bold text-blue-900 mb-6">Selecciona l'idioma / Select language</h2>
+                    <div class="grid gap-3 max-w-xs mx-auto">
+                        <button onclick="window.setLanguage('ca')" class="p-3 bg-white border border-blue-200 rounded-lg shadow-sm hover:border-blue-500 font-semibold flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40" class="w-5 h-3.5 rounded-[2px] shadow-sm overflow-hidden"><rect width="60" height="40" fill="#fcd116"/><rect y="4.44" width="60" height="4.44" fill="#ce1126"/><rect y="13.33" width="60" height="4.44" fill="#ce1126"/><rect y="22.22" width="60" height="4.44" fill="#ce1126"/><rect y="31.11" width="60" height="4.44" fill="#ce1126"/></svg>
+                            Català
+                        </button>
+                        <button onclick="window.setLanguage('es')" class="p-3 bg-white border border-blue-200 rounded-lg shadow-sm hover:border-blue-500 font-semibold flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40" class="w-5 h-3.5 rounded-[2px] shadow-sm overflow-hidden"><rect width="60" height="40" fill="#aa151b"/><rect y="10" width="60" height="20" fill="#f1bf00"/><circle cx="20" cy="20" r="4" fill="#aa151b" opacity="0.8"/></svg>
+                            Castellano
+                        </button>
+                        <button onclick="window.setLanguage('en')" class="p-3 bg-white border border-blue-200 rounded-lg shadow-sm hover:border-blue-500 font-semibold flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40" class="w-5 h-3.5 rounded-[2px] shadow-sm overflow-hidden"><rect width="60" height="40" fill="#012169"/><g stroke="#fff" stroke-width="8"><line x1="0" y1="0" x2="60" y2="40"/><line x1="60" y1="0" x2="0" y2="40"/></g><g stroke="#C8102E" stroke-width="4"><line x1="0" y1="0" x2="60" y2="40"/><line x1="60" y1="0" x2="0" y2="40"/></g><rect x="24" width="12" height="40" fill="#fff"/><rect y="14" width="60" height="12" fill="#fff"/><rect x="26" width="8" height="40" fill="#C8102E"/><rect y="16" width="60" height="8" fill="#C8102E"/></svg>
+                            English
+                        </button>
+                        <button onclick="window.setLanguage('fr')" class="p-3 bg-white border border-blue-200 rounded-lg shadow-sm hover:border-blue-500 font-semibold flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40" class="w-5 h-3.5 rounded-[2px] shadow-sm overflow-hidden"><rect width="20" height="40" fill="#002395"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#ed2939"/></svg>
+                            Français
+                        </button>
+                    </div>
+                </div>`;
+            } else if (step === 'intro') {
+                html = `<div class="text-center w-full animate-in"><div class="mb-8"><h2 class="text-2xl font-bold text-slate-800 mb-2">${t('intro_title')}</h2><p class="text-slate-600">${t('intro_text')}</p></div><div class="grid grid-cols-2 gap-6 mb-8 max-w-sm mx-auto"><div onclick="window.selectAvatar('female')" class="avatar-card cursor-pointer p-4 rounded-2xl border-2 border-slate-100 bg-white transition-all flex flex-col items-center group">${getProfessorAvatar("large", "happy", "female").replace('mb-4', 'mb-2')}<h3 class="text-lg font-bold text-slate-700 group-hover:text-blue-600">Pilar</h3></div><div onclick="window.selectAvatar('male')" class="avatar-card cursor-pointer p-4 rounded-2xl border-2 border-slate-100 bg-white transition-all flex flex-col items-center group">${getProfessorAvatar("large", "happy", "male").replace('mb-4', 'mb-2')}<h3 class="text-lg font-bold text-slate-700 group-hover:text-blue-600">Joan</h3></div></div></div>`;
+            } else if (step === 'context') {
+                 html = `<div class="text-center max-w-md animate-in">${getProfessorAvatar("large", "happy")}<div class="bg-blue-50 p-4 rounded-xl mb-6 text-left border border-blue-100 relative"><div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[10px] border-b-blue-50"></div><p class="text-blue-900 text-sm">${t('context_intro')}</p></div><div class="grid gap-3">${[{ l: t('ctx_formal'), v: "Educació Formal", n: "user_info" }, { l: t('ctx_sport'), v: "Esport Formatiu", n: "user_info" }, { l: t('ctx_other'), v: "Altres", n: "user_info" }].map(o => `<button onclick="window.selectContext('${o.v}', '${o.n}')" class="w-full text-left px-6 py-4 bg-white border border-slate-200 rounded-xl hover:border-blue-500 hover:shadow-md hover:bg-blue-50 transition-all font-medium text-slate-700">${o.l}</button>`).join('')}</div></div>`;
+            } else if (step === 'user_info') {
+                 html = `<div class="w-full max-w-sm space-y-4 animate-in">
+                    ${getProfessorAvatar("small", "neutral")}
+                    <div class="bg-blue-50 p-4 rounded-xl mb-4 text-left border border-blue-100 relative">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[10px] border-b-blue-50"></div>
+                        <p class="text-blue-900 text-sm">${t('user_intro')}</p>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-800 text-center">${t('user_title')}</h2>
+                    <input type="text" id="uid" class="w-full p-3 border rounded-lg" placeholder="${t('lbl_id')}" value="${state.data.userId || ''}">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="number" id="uage" class="w-full p-3 border rounded-lg" placeholder="${t('lbl_age')}" value="${state.data.age || ''}">
+                        <select id="usex" class="w-full p-3 border rounded-lg bg-white"><option value="${t('opt_woman')}">${t('opt_woman')}</option><option value="${t('opt_man')}">${t('opt_man')}</option><option value="${t('opt_other')}">${t('opt_other')}</option></select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="uloc" class="w-full p-3 border rounded-lg" placeholder="${t('lbl_loc')}" value="${state.data.locality || ''}">
+                        <input type="text" id="ucountry" class="w-full p-3 border rounded-lg" placeholder="${t('lbl_country')}" value="${state.data.country || ''}">
+                    </div>
+                    <div class="mt-2 p-3 border border-slate-200 rounded-lg text-xs text-slate-600 bg-white">
+                        <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" id="input-consent" class="mt-0.5" ${state.data.consent ? 'checked' : ''}><span>${t('consent_text')}</span></label>
+                    </div>
+                    <button onclick="window.saveUser()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">${t('btn_accept')}</button>
+                 </div>`;
+            } else if (step === 'scenario_analysis') {
+                html = `<div class="w-full max-w-sm space-y-4 animate-in">${getProfessorAvatar("large", "happy")}<div class="bg-blue-50 p-4 rounded-xl mb-4 text-left border border-blue-100 relative"><div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[10px] border-b-blue-50"></div><p class="text-blue-900 text-sm">${t('scenario_intro')}</p></div><h2 class="text-lg font-bold text-slate-800 text-center">${t('scenario_title')}</h2><div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3"><div><label class="text-xs font-bold text-slate-500">${t('lbl_group')}</label><input type="text" id="grp" class="w-full p-2 border rounded text-sm bg-white" placeholder="3r A, Grup Blau..."></div><div><div class="flex items-center justify-between mb-1"><label class="text-xs font-bold text-slate-500">${t('scenario_dom')}</label><button onclick="window.openHelp('scenario')" class="text-blue-500 p-1 bg-blue-50 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button></div><select id="dom" class="w-full p-2 border rounded text-sm bg-white"><option value="Psico">${t('dom_psico')}</option><option value="Coop">${t('dom_coop')}</option><option value="Op">${t('dom_op')}</option><option value="Coop-Op">${t('dom_coop_op')}</option></select></div><div><label class="text-xs font-bold text-slate-500">${t('lbl_comp')}</label><select id="comp" class="w-full p-2 border rounded text-sm bg-white" onchange="render()"><option value="No" ${state.data.competition === 'No' ? 'selected' : ''}>${t('no')}</option><option value="Si" ${state.data.competition === 'Si' ? 'selected' : ''}>${t('yes')}</option></select></div></div><button onclick="window.saveScenario()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">${t('btn_continue')}</button></div>`;
+            } else if (step === 'participants_input') {
+                const showResults = state.data.competition === 'Si';
+                html = `<div class="w-full max-w-md space-y-4 animate-in"><h2 class="text-lg font-bold text-slate-800 text-center">${t('part_title')}</h2><div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><div class="flex items-center justify-between mb-2"><h3 class="font-bold text-blue-800 text-xs">${t('lbl_p1')}</h3><button onclick="window.openHelp('agent_def')" class="text-blue-500 p-1 bg-white rounded-full border border-blue-200 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button></div><div class="grid ${showResults ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-2">${showResults ? `<select id="p1s" class="text-xs p-2 rounded bg-white border"><option value="Neutre">${t('st_none')}</option><option value="Guanya">${t('st_win')}</option><option value="Perd">${t('st_lose')}</option></select>` : ''}<select id="p1x" class="text-xs p-2 rounded bg-white border"><option value="M">${t('opt_masc')}</option><option value="F">${t('opt_fem')}</option></select></div><input id="p1d" class="w-full text-xs p-2 rounded border" placeholder="${t('lbl_desc_act')}"></div><div class="bg-orange-50 p-3 rounded-lg border border-orange-100"><div class="flex items-center justify-between mb-2"><h3 class="font-bold text-orange-800 text-xs">${t('lbl_p2')}</h3><button onclick="window.openHelp('reaction_def')" class="text-orange-500 p-1 bg-white rounded-full border border-orange-200 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button></div><div class="grid ${showResults ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-2">${showResults ? `<select id="p2s" class="text-xs p-2 rounded bg-white border"><option value="Neutre">${t('st_none')}</option><option value="Guanya">${t('st_win')}</option><option value="Perd">${t('st_lose')}</option></select>` : ''}<select id="p2x" class="text-xs p-2 rounded bg-white border"><option value="M">${t('opt_masc')}</option><option value="F">${t('opt_fem')}</option></select></div><input id="p2d" class="w-full text-xs p-2 rounded border" placeholder="${t('lbl_desc_reac')}"></div><button onclick="window.saveParticipants()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">${t('btn_continue')}</button></div>`;
+            } else if (step === 'conflict_action_main') {
+                 html = createSelectionScreen(t('act_q'), [{ l: t('cat_verbal'), v: 1, fn: "window.selectActionCat(1)" }, { l: t('cat_mismatch'), v: 2, fn: "window.selectActionCat(2)" }, { l: t('cat_perverse'), v: 3, fn: "window.selectActionCat(3)" }], null, t('lbl_p1'));
+            } else if (step === 'conflict_action_sub') {
+                const cat = state.data.actionCat;
+                let opts = []; 
+                let prevChoice = "";
+                if (cat === 1) { opts = [{k:'sub_v1', v:1}, {k:'sub_v2', v:2}]; prevChoice = t('cat_verbal'); }
+                else if (cat === 2) { opts = [{k:'sub_m1', v:1}, {k:'sub_m2', v:2}]; prevChoice = t('cat_mismatch'); }
+                else { opts = [{k:'sub_p1', v:1}, {k:'sub_p2', v:2}, {k:'sub_p3', v:3}, {k:'sub_p4', v:4}]; prevChoice = t('cat_perverse'); }
+                
+                // Mostrem l'elecció anterior com a títol i un subtítol per al detall
+                html = createSelectionScreen(prevChoice, opts.map(o => ({ l: t(o.k), fn: `window.selectActionSub(${o.v}, '${o.k}')` })), null, `Detall de l'acció (${t('lbl_p1')})`);
+            } else if (step === 'conflict_reaction') {
+                html = createSelectionScreen(t('reac_q'), [{ l: t('reac_verb'), v: 1, fn: `window.selectReaction(1, 'reac_verb')` }, { l: t('reac_phys'), v: 2, fn: `window.selectReaction(2, 'reac_phys')` }, { l: t('reac_mix'), v: 3, fn: `window.selectReaction(3, 'reac_mix')` }], null, t('lbl_p2'));
+            } else if (step === 'calc_result') {
+                const score = state.data.thermometer;
+                let color = "bg-green-500", textCol = "text-green-600", lvl = t('th_low'), height = "33%";
+                if (score === 4) { color = "bg-yellow-400"; textCol = "text-yellow-600"; lvl = t('th_med'); height = "66%"; }
+                if (score >= 5) { color = "bg-red-500"; textCol = "text-red-600"; lvl = t('th_high'); height = "100%"; }
+                if(state.data.consent) window.saveToCloud();
+                html = `<div class="text-center w-full animate-in pb-10"><h2 class="text-xl font-bold text-slate-800 mb-6">${t('final_res_title')}</h2><div class="flex items-end justify-center gap-8 mb-6"><div class="relative w-16 h-48 bg-slate-200 rounded-full border-4 border-slate-300 p-1 flex flex-col justify-end"><div class="w-full ${color} rounded-full transition-all duration-1000" style="height: ${height}"></div><div class="absolute -top-3 left-0 w-full text-center font-bold text-sm bg-white rounded shadow-sm border border-slate-100 py-0.5">${score}/6</div></div><div class="flex-1 bg-white p-4 rounded-xl shadow-lg border text-left space-y-3"><div><p class="text-xs text-slate-400 uppercase font-bold">${t('final_type')}</p><p class="text-2xl font-bold text-blue-900">${state.data.conflictType}</p></div><div class="py-2 border-t border-b border-slate-100"><p class="text-[10px] text-slate-400 uppercase font-bold mb-1">${t('lbl_res_desc')}</p><div class="mb-1"><span class="font-semibold text-slate-500">${t('res_action')}</span> <span class="text-xs text-slate-700 block">${state.data.actionText}</span></div><div><span class="font-semibold text-slate-500">${t('res_reaction')}</span> <span class="text-xs text-slate-700 block">${state.data.reactionText}</span></div></div><div><p class="text-xs text-slate-400 uppercase font-bold">Nivell</p><p class="text-lg font-bold ${textCol}">${lvl}</p></div><div><p class="text-xs text-slate-400 uppercase font-bold">${t('final_gender')}</p><p class="text-sm font-semibold text-slate-700">${state.data.genderMix}</p></div></div></div><div id="save-msg" class="hidden mb-4 p-2 bg-green-50 text-green-700 text-xs rounded border border-green-200">${t('saved')}</div><div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6"><p class="text-sm text-blue-900 font-bold mb-3">${t('lbl_another_conflict')}</p><div class="grid gap-2"><button onclick="window.nextConflict()" class="w-full bg-white text-blue-700 border border-blue-200 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition">${t('btn_new_conflict')}</button><button onclick="window.finishSession()" class="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">${t('btn_end_session')}</button></div></div></div>`;
+            } else if (step === 'session_summary') {
+                const history = state.data.sessionHistory; const total = history.length;
+                let genders = { [t('gen_mm')]: 0, [t('gen_ff')]: 0, [t('gen_mf')]: 0, [t('gen_fm')]: 0 };
+                if (total > 0) history.forEach(h => { if (genders[h.gender] !== undefined) genders[h.gender]++; });
+                const tableRows = history.map((h, index) => `<tr class="border-b last:border-0 hover:bg-slate-50"><td class="p-3 text-xs font-bold text-blue-900"><span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full text-[10px]">${h.type.replace('Tipus ', '')}</span></td><td class="p-3 text-xs text-slate-600">${h.action}</td></tr>`).join('');
+                html = `<div class="text-center w-full animate-in py-6">${getProfessorAvatar("large", "happy")}<h2 class="text-2xl font-bold text-slate-800 mb-2">${t('session_report_title')}</h2><p class="text-slate-600 mb-6 text-sm">${t('session_report_text')}</p><div class="grid grid-cols-1 gap-4 mb-6 max-w-sm mx-auto"><div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center"><span class="text-xs text-slate-400 uppercase font-bold">${t('session_count')}</span><span class="text-3xl font-bold text-blue-600">${total}</span></div></div><div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left mb-6 max-w-sm mx-auto"><h4 class="text-[10px] font-bold text-slate-500 uppercase mb-3 border-b pb-2">${t('lbl_gender_breakdown')}</h4><div class="space-y-2 text-xs"><div class="flex justify-between items-center border-b last:border-0 pb-1"><span class="text-slate-600">${t('gen_mm')}</span><span class="font-bold text-slate-800">${genders[t('gen_mm')] || 0}</span></div><div class="flex justify-between items-center border-b last:border-0 pb-1"><span class="text-slate-600">${t('gen_ff')}</span><span class="font-bold text-slate-800">${genders[t('gen_ff')] || 0}</span></div><div class="flex justify-between items-center border-b last:border-0 pb-1"><span class="text-slate-600">${t('gen_mf')}</span><span class="font-bold text-slate-800">${genders[t('gen_mf')] || 0}</span></div><div class="flex justify-between items-center border-b last:border-0 pb-1"><span class="text-slate-600">${t('gen_fm')}</span><span class="font-bold text-slate-800">${genders[t('gen_fm')] || 0}</span></div></div></div><div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 text-left max-w-sm mx-auto"><div class="max-h-60 overflow-y-auto custom-scrollbar"><table class="w-full"><thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold sticky top-0"><tr><th class="p-2 text-left w-16">${t('tbl_type')}</th><th class="p-2 text-left">${t('tbl_action')}</th></tr></thead><tbody class="divide-y">${tableRows}</tbody></table></div></div><p class="text-xs text-slate-400 italic mb-6 text-center">${t('session_contact')}</p><button onclick="window.location.reload()" class="w-full max-w-xs bg-slate-800 text-white p-3 rounded-lg font-bold shadow-lg hover:bg-slate-900 transition-colors">${t('session_new_btn')}</button></div>`;
+            }
+            container.innerHTML = html;
+            const btnBack = document.getElementById('btn-back');
+            if(state.history.length > 0 && step !== 'session_summary') btnBack.classList.remove('hidden'); else btnBack.classList.add('hidden');
+            if(typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function createSelectionScreen(title, options, helpType = null, subtitle = '') {
+            return `<div class="w-full max-w-md animate-in">${getProfessorAvatar("small", "neutral")}<div class="text-center mb-6"><div class="flex items-center justify-center gap-2"><h2 class="text-lg font-bold text-slate-800">${title}</h2>${helpType ? `<button onclick="window.openHelp('${helpType}')" class="text-blue-500 p-1 bg-blue-50 rounded-full border border-blue-100"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>` : ''}</div>${subtitle ? `<p class="text-lg text-blue-700 font-bold mt-1">${subtitle}</p>` : ''}</div><div class="grid gap-3">${options.map(o => `<button onclick="${o.fn}" class="w-full text-left px-5 py-4 bg-white border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all group flex items-center justify-between"><span class="font-medium text-slate-700 group-hover:text-blue-700 text-sm">${o.l}</span><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 group-hover:text-blue-500 flex-shrink-0"><path d="m9 18 6-6-6-6"/></svg></button>`).join('')}</div></div>`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { render(); if (typeof lucide !== 'undefined') lucide.createIcons(); });
+    </script>
+</body>
+</html>
