@@ -1,7 +1,7 @@
 {
   "name": "Conflictometer",
   "short_name": "Conflictometer",
-  "description": "Eina per identificar i gestionar conflictes motors",
+  "description": "Tool to identify motor conflicts",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
@@ -22,3 +22,4 @@
     }
   ]
 }
+
