@@ -16,7 +16,7 @@ Pla-Pla, P., Lavega-Burgués, P., & Sáez de Ocáriz, U. (2026). Conflictometer:
 
 To ensure long-term preservation and strict reproducibility, the specific release of the software used in our manuscript has been archived on Zenodo:
 
-DOI: [INSERT ZENODO DOI HERE]
+DOI: 10.5281/zenodo.18961730
 
 *Contact and Support*
 
