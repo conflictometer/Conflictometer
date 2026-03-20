@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
@@ -34,6 +33,450 @@
         @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        .avatar-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .hidden { display: none !important; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .footer-credits {
+            font-size: 0.65rem;
+            color: #64748b;
+            margin-top: 0.5rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 0.5rem;
+        }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div id="help-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4 animate-in fade-in zoom-in duration-200">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <button onclick="document.getElementById('help-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+            <h3 class="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <span id="modal-title">Guia</span>
+            </h3>
+            <div id="modal-content" class="space-y-3 text-sm text-slate-600"></div>
+            <button onclick="document.getElementById('help-modal').classList.add('hidden')" class="w-full mt-6 bg-blue-100 text-blue-700 py-2 rounded-lg font-bold hover:bg-blue-200 transition-colors">
+                Tancar
+            </button>
+        </div>
+    </div>
+
+    <div id="app-container" class="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden min-h-[600px] flex flex-col relative" style="background-color: rgba(255, 255, 255, 0.96);">
+        <header class="bg-blue-900 text-white p-4 flex items-center justify-between relative z-10 shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 bg-white rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
+                    <img id="app-logo-img" src="logo_app.jpg" alt="APP" class="w-full h-full object-cover" onerror="this.style.display='none'; document.getElementById('logo-fallback-text').style.display='flex'">
+                    <div id="logo-fallback-text" class="hidden w-full h-full items-center justify-center text-blue-900 font-bold text-[10px] leading-none text-center">APP</div>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight leading-tight" id="header-title">Conflictometer</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-1">
+                <button id="btn-back" onclick="window.goBack()" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white hidden" title="Enrere">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                </button>
+                <button onclick="window.navigateTo('language_selection')" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white" title="Inici">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <main id="content" class="flex-grow p-6 flex flex-col items-center justify-center text-slate-700 fade-in relative z-0 overflow-y-auto custom-scrollbar">
+            <div class="animate-pulse flex flex-col items-center">
+                <div class="h-8 w-8 bg-blue-200 rounded-full mb-2"></div>
+                <p class="text-slate-400 text-sm">Carregant...</p>
+            </div>
+        </main>
+
+        <footer class="bg-slate-50/80 p-4 text-center text-xs text-slate-400 border-t">
+            <div class="footer-credits">
+                <p class="font-bold text-slate-600">Creat per Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)</p>
+                <div class="flex items-center justify-center gap-2 mt-2 opacity-70">
+                    <img src="logo giam.jpg" alt="GIAM" class="h-6 object-contain">
+                    <div id="connection-status" class="text-[9px]">Connectant...</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- CONFIG FIREBASE ---
+        const myFirebaseConfig = {
+            apiKey: "AIzaSyCHjfWUm1ScQWQjrz6NM9plVsA4wZircGg",
+            authDomain: "giam-4e2f2.firebaseapp.com",
+            projectId: "giam-4e2f2",
+            storageBucket: "giam-4e2f2.firebasestorage.app",
+            messagingSenderId: "738484274806",
+            appId: "1:738484274806:web:2482d1d17c6f7930044157",
+            measurementId: "G-NVTYLW7P7T"
+        };
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myFirebaseConfig;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'giam-app-research'; 
+
+        let db; let auth; let currentUser = null;
+
+        // --- GESTIÓ DE CONNEXIÓ I OFFLINE ---
+        function updateStatus() {
+            const st = document.getElementById('connection-status');
+            if (!st) return;
+            if (navigator.onLine) {
+                st.innerText = currentUser ? "Online" : "Connectant...";
+                st.className = "text-[9px] text-green-600";
+                if (currentUser) syncOfflineData();
+            } else {
+                st.innerText = "Offline (Treballant en local)";
+                st.className = "text-[9px] text-orange-600";
+            }
+        }
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            
+            const initAuth = async () => {
+                try {
+                    await signInAnonymously(auth);
+                } catch (error) { 
+                    console.error("Auth Error");
+                    updateStatus();
+                }
+            };
+            initAuth();
+
+            onAuthStateChanged(auth, (user) => { 
+                if (user) { 
+                    currentUser = user; 
+                    updateStatus();
+                } 
+            });
+
+            window.addEventListener('online', updateStatus);
+            window.addEventListener('offline', updateStatus);
+            updateStatus();
+        } catch (e) { 
+            console.warn("Init Error");
+            updateStatus();
+        }
+
+        async function syncOfflineData() {
+            if (!db || !currentUser || !navigator.onLine) return;
+            const pending = JSON.parse(localStorage.getItem('giam_pending_conflicts') || '[]');
+            if (pending.length === 0) return;
+            
+            const st = document.getElementById('connection-status');
+            if(st) st.innerText = "Sincronitzant...";
+            
+            const newPending = [];
+            for (const data of pending) {
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'giam_responses'), { 
+                        ...data, 
+                        timestamp: serverTimestamp(), 
+                        authUid: currentUser.uid, 
+                        appVersion: "5.60 (synced)" 
+                    });
+                } catch (e) { 
+                    newPending.push(data); 
+                }
+            }
+            localStorage.setItem('giam_pending_conflicts', JSON.stringify(newPending));
+            updateStatus();
+        }
+
+        // --- DICCIONARI D'IDIOMES ---
+        const translations = {
+            ca: {
+                app_name: "Conflictometer",
+                intro_title: "Benvingut/da",
+                intro_text: "Aquesta eina t'ajudarà a identificar i gestionar els conflictes motors.",
+                intro_select: "Tria qui vols que t'acompanyi:",
+                btn_start: "Començar", btn_continue: "Continuar", btn_accept: "Acceptar i Continuar", btn_understand: "Entesos, continuar", btn_back_home: "Tornar a l'inici",
+                yes: "Sí", no: "No", 
+                context_title: "Context d'aplicació", context_intro: "Hola! Soc {name}. Situa'm una mica: <strong>En quin context et trobes?</strong>",
+                ctx_formal: "Educació Formal (Educació Física)", 
+                ctx_sport: "Activitat Esportiva (Federat / Extraescolar)", 
+                ctx_other: "Altres (Estades, esplai, lleure, esbarjo...)",
+                user_title: "Identificació i Consentiment", user_intro: "Necessito algunes dades bàsiques per a la recerca. No pateixis, tot és <strong>totalment anònim</strong>.",
+                lbl_id: "ID Usuari / Pseudònim", lbl_age: "Edat", lbl_sex: "Sexe", opt_woman: "Dona", opt_man: "Home", opt_other: "Altres", lbl_loc: "Localitat", lbl_country: "País",
+                consent_text: "<strong>Consentiment Informat:</strong> Accepto compartir les dades per a objectius acadèmics. Entenc que les dades seran tractades de forma anònima.",
+                scenario_title: "Escenari del Conflicte", 
+                scenario_intro: "Molt bé. Ara descriu-me l'escenari on ha passat el conflicte.", 
+                scenario_dom: "Tipus de situació motriu", 
+                dom_psico: "Psicomotor", dom_coop: "Cooperació", dom_op: "Oposició", dom_coop_op: "Cooperació-Oposició",
+                lbl_comp: "Hi ha resultat final? (Guanyadors/es-perdedors/es)", lbl_group: "Grup / Classe",
+                help_title_scen: "Tipus de Situació Motriu",
+                help_psico: "<strong>Psicomotor:</strong> No hi ha companys/es ni adversaris.",
+                help_coop: "<strong>Cooperació:</strong> Només hi ha companys/es.",
+                help_op: "<strong>Oposició:</strong> Només hi ha adversaris.",
+                help_coop_op: "<strong>Cooperació-Oposició:</strong> Hi ha companys/es i adversaris al mateix temps.",
+                help_title_agent_def: "Agent Generador Conflictiu",
+                help_text_agent_def: "És la persona que inicia el conflicte, realitzant l'acció que provoca el desacord.",
+                help_title_reaction_def: "Resposta a l'estímul conflictiu",
+                help_text_reaction_def: "És la persona que rep l'acció inicial i hi respon, generant la segona part del conflicte.",
+                part_title: "Protagonistes", 
+                lbl_p1: "Persona 1 (Acció)", lbl_p2: "Persona 2 (Reacció)",
+                lbl_status: "Resultat", st_win: "Guanyador", st_lose: "Perdedor", st_none: "Neutre",
+                lbl_desc_act: "Quina acció ha fet?", lbl_desc_reac: "Quina reacció ha fet?",
+                opt_masc: "Home", opt_fem: "Dona",
+                act_title: "Què ha passat?", act_q: "Tria l'acció que ha provocat el conflicte:",
+                cat_verbal: "Problemes al pactar", cat_mismatch: "Acció involuntària", cat_perverse: "Acció voluntària",
+                sub_v1: "I. No s'han posat d'acord", sub_v2: "II. Ha trencat el pacte",
+                sub_m1: "I. S'ha equivocat", sub_m2: "II. Ha fet mal a algú (sense voler)",
+                sub_p1: "I. Ha fet trampes", sub_p2: "II. Ho ha fet malament expressament", 
+                sub_p3: "III. Agressió Física", sub_p4: "IV. Agressió verbal",
+                reac_title: "Reacció", reac_q: "Com ha respost l'altra persona?",
+                reac_verb: "Insults", reac_phys: "Cops o empentes", reac_mix: "Les dues coses",
+                final_res_title: "Tipus de conflicte generat", final_type: "Tipus de CM", final_gender: "Gènere del Conflicte",
+                gen_mm: "Masc (H-H)", gen_ff: "Fem (D-D)", gen_mf: "Mixte (H-D)", gen_fm: "Mixte (D-H)",
+                lbl_res_desc: "Format per:", res_action: "Acció:", res_reaction: "Reacció:",
+                saved: "✓ Dades guardades", saved_offline: "⚠ Guardat al mòbil (Pendent d'enviar)",
+                lbl_another_conflict: "Hi ha hagut un altre conflicte?", btn_new_conflict: "Sí (Registrar nou)", btn_end_session: "No (Finalitzar)",
+                session_report_title: "Resum de la Sessió", session_report_text: "Gràcies per la col·laboració!", session_count: "Conflictes:", session_new_btn: "Nova Sessió",
+                session_contact: "Contacte: paulaplapla98@gmail.com",
+                th_low: "Baixa Conflictivitat", th_med: "Mitjana", th_high: "Alta",
+                lbl_gender_breakdown: "Per Gènere", tbl_type: "Tipus", tbl_action: "Acció"
+            }
+            // (Es poden mantenir les traduccions es, en, fr igualment aquí)
+        };
+
+        const state = {
+            step: 'language_selection',
+            history: [],
+            data: {
+                lang: 'ca', avatarType: 'female', 
+                userId: '', age: '', sex: '', locality: '', country: '', consent: false, context: '',
+                domain: '', competition: '', group: '',
+                p1: { status: '', sex: '', desc: '' },
+                p2: { status: '', sex: '', desc: '' },
+                actionCat: 0, actionSub: 0, reaction: 0, 
+                conflictType: '', thermometer: 0, genderMix: '',
+                sessionHistory: [],
+                actionText: '', reactionText: ''
+            }
+        };
+
+        function t(key) {
+            const lang = state.data.lang || 'ca';
+            let text = translations[lang][key] || translations['ca'][key] || key;
+            if (text.includes('{name}')) text = text.replace('{name}', getName());
+            return text;
+        }
+
+        function getName() {
+            const t = state.data.avatarType;
+            if (state.data.lang === 'ca') return t === 'female' ? "la Pilar" : "en Joan";
+            return t === 'female' ? "Pilar" : "Joan";
+        }
+
+        function getProfessorAvatar(size = "large", expression = "neutral", typeOverride = null) {
+            const wh = size === "large" ? "w-28 h-28" : "w-16 h-16";
+            const currentType = typeOverride || state.data.avatarType;
+            const mouth = expression === "happy" ? "M9 14s1.5 2 3 2 3-2 3-2" : (expression === "serious" ? "M9 15h6" : "M9 14s1.5 1 3 1 3-1 3-1");
+            let hairPath = "";
+            if (currentType === 'female') {
+                hairPath = `<path d="M12 2 C 7 2 5 6 5 10 L 5 14 C 5 15.5 6 16.5 7.5 16.5 L 16.5 16.5 C 18 16.5 19 15.5 19 14 L 19 10 C 19 6 17 2 12 2 Z" fill="#4a3b32" stroke="none"/><circle cx="12" cy="8" r="4.2" fill="#ffedd5" stroke="#fdba74"/>`;
+            } else {
+                hairPath = `<circle cx="12" cy="7" r="4" fill="#ffedd5" stroke="#fdba74"/><path d="M12 2.5c-3 0-4.5 1.5-4.5 4v1h9v-1c0-2.5-1.5-4-4.5-4z" fill="#334155" stroke="none"/><path d="M7.5 6.5v1.5" stroke="#334155" stroke-width="0.5"/>`;
+            }
+            const glasses = `<circle cx="10.5" cy="7" r="1.2" fill="white" stroke="currentColor" stroke-width="0.5"/><circle cx="13.5" cy="7" r="1.2" fill="white" stroke="currentColor" stroke-width="0.5"/><path d="M11.7 7h0.6" stroke="currentColor" stroke-width="0.5"/>`;
+            return `<div class="${wh} bg-white rounded-full border-4 border-blue-100 shadow-md flex items-center justify-center mx-auto mb-4 ${size === 'large' ? 'avatar-float' : ''} overflow-hidden relative"><svg viewBox="0 0 24 24" class="w-full h-full text-slate-800 transform translate-y-1" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" fill="#bfdbfe" stroke="#60a5fa"/><path d="M12 15v6" stroke="#60a5fa" stroke-width="0.5" opacity="0.5"/>${hairPath}${glasses}<path d="${mouth}" stroke="#be123c" stroke-width="1"/></svg></div>`;
+        }
+
+        window.setLanguage = (lang) => { state.data.lang = lang; document.getElementById('header-title').innerText = t('app_name'); window.navigateTo('intro'); };
+        window.selectAvatar = (type) => { state.data.avatarType = type; window.navigateTo('context'); };
+        window.selectContext = (value, nextStep) => { state.data.context = value; window.navigateTo(nextStep); };
+        window.navigateTo = (step) => {
+            if(step === 'language_selection') state.history = [];
+            else state.history.push(state.step);
+            state.step = step;
+            render();
+        };
+        window.goBack = () => { if(state.history.length) { state.step = state.history.pop(); render(); } };
+        
+        window.openHelp = (type) => {
+             const modal = document.getElementById('help-modal');
+             const title = document.getElementById('modal-title');
+             const content = document.getElementById('modal-content');
+             if (type === 'scenario') {
+                 title.innerText = t('help_title_scen');
+                 content.innerHTML = `<div class="p-3 bg-blue-50 rounded mb-2 border border-blue-100">${t('help_psico')}</div><div class="p-3 bg-green-50 rounded mb-2 border border-green-100">${t('help_coop')}</div><div class="p-3 bg-orange-50 rounded mb-2 border border-orange-100">${t('help_op')}</div><div class="p-3 bg-purple-50 rounded mb-2 border border-purple-100">${t('help_coop_op')}</div>`;
+             } else if (type === 'agent_def') {
+                 title.innerText = t('help_title_agent_def');
+                 content.innerHTML = `<div class="p-3 bg-blue-50 rounded mb-2 border border-blue-100">${t('help_text_agent_def')}</div>`;
+             } else if (type === 'reaction_def') {
+                 title.innerText = t('help_title_reaction_def');
+                 content.innerHTML = `<div class="p-3 bg-orange-50 rounded mb-2 border border-orange-100">${t('help_text_reaction_def')}</div>`;
+             }
+             modal.classList.remove('hidden');
+        };
+
+        window.saveUser = () => {
+             const uid = document.getElementById('uid').value;
+             const age = document.getElementById('uage').value;
+             const sex = document.getElementById('usex').value;
+             const loc = document.getElementById('uloc').value;
+             const country = document.getElementById('ucountry').value;
+             const consent = document.getElementById('input-consent').checked;
+             if(!uid || !age || !sex || !loc || !country || !consent) return alert("Emplena tot i accepta el consentiment.");
+             state.data.userId = uid; state.data.age = age; state.data.sex = sex; state.data.locality = loc; state.data.country = country; state.data.consent = true;
+             window.navigateTo('scenario_analysis');
+        };
+
+        window.saveScenario = () => {
+             const grp = document.getElementById('grp').value;
+             if(!grp) return alert("Indica el grup.");
+             state.data.group = grp;
+             state.data.domain = document.getElementById('dom').value;
+             state.data.competition = document.getElementById('comp').value;
+             window.navigateTo('participants_input');
+        };
+
+        window.saveParticipants = () => {
+             const d1 = document.getElementById('p1d').value;
+             const d2 = document.getElementById('p2d').value;
+             if(!d1 || !d2) return alert("Descriu l'acció.");
+             state.data.p1 = { status: document.getElementById('p1s') ? document.getElementById('p1s').value : 'Neutre', sex: document.getElementById('p1x').value, desc: d1 };
+             state.data.p2 = { status: document.getElementById('p2s') ? document.getElementById('p2s').value : 'Neutre', sex: document.getElementById('p2x').value, desc: d2 };
+             window.navigateTo('conflict_action_main');
+        };
+
+        window.selectActionCat = (cat) => { state.data.actionCat = cat; window.navigateTo('conflict_action_sub'); };
+        window.selectActionSub = (sub, key) => { state.data.actionSub = sub; state.data.actionText = t(key); window.navigateTo('conflict_reaction'); };
+        window.selectReaction = (r, key) => { state.data.reaction = r; state.data.reactionText = t(key); calculateResult(); };
+
+        function calculateResult() {
+            const ac = state.data.actionCat;
+            const re = state.data.reaction;
+            let type = "Unknown";
+            if (ac === 1) { 
+                if (re === 1) type = "Tipus I"; else if (re === 2) type = "Tipus II"; else if (re === 3) type = "Tipus IV"; 
+            } else if (ac === 2) { 
+                if (re === 1) type = "Tipus III"; else if (re === 2) type = "Tipus V"; else if (re === 3) type = "Tipus VII";
+            } else if (ac === 3) { 
+                if (re === 1) type = "Tipus VI"; else if (re === 2) type = "Tipus VIII"; else if (re === 3) type = "Tipus IX";
+            }
+            state.data.conflictType = type; state.data.thermometer = ac + re; 
+            const s1 = state.data.p1.sex; const s2 = state.data.p2.sex;
+            let gm = "Altres";
+            if (s1 === 'M' && s2 === 'M') gm = t('gen_mm'); else if (s1 === 'F' && s2 === 'F') gm = t('gen_ff'); else if (s1 === 'M' && s2 === 'F') gm = t('gen_mf'); else if (s1 === 'F' && s2 === 'M') gm = t('gen_fm');
+            state.data.genderMix = gm; window.navigateTo('calc_result');
+        }
+
+        async function saveToCloud() {
+            state.data.sessionHistory.push({ 
+                type: state.data.conflictType, score: state.data.thermometer, 
+                gender: state.data.genderMix, action: state.data.actionText 
+            });
+
+            const fb = document.getElementById('save-msg');
+            const dataToSave = { ...state.data, timestamp: new Date().toISOString(), appVersion: "5.60" };
+
+            if (db && currentUser && navigator.onLine) {
+                try { 
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'giam_responses'), { 
+                        ...dataToSave, timestamp: serverTimestamp(), authUid: currentUser.uid 
+                    }); 
+                    if(fb) { fb.innerText = t('saved'); fb.classList.remove('hidden', 'bg-orange-50'); fb.classList.add('bg-green-50'); }
+                    return;
+                } catch (e) { console.error("Error enviant", e); }
+            }
+
+            const pending = JSON.parse(localStorage.getItem('giam_pending_conflicts') || '[]');
+            pending.push(dataToSave);
+            localStorage.setItem('giam_pending_conflicts', JSON.stringify(pending));
+            if(fb) { fb.innerText = t('saved_offline'); fb.classList.remove('hidden', 'bg-green-50'); fb.classList.add('bg-orange-50'); }
+            updateStatus();
+        }
+        window.saveToCloud = saveToCloud;
+
+        window.nextConflict = () => {
+            state.data.actionCat = 0; state.data.actionSub = 0; state.data.reaction = 0;
+            window.navigateTo('scenario_analysis');
+        };
+
+        window.finishSession = () => { window.navigateTo('session_summary'); };
+
+        function render() {
+            const container = document.getElementById('content');
+            const step = state.step;
+            let html = '';
+            
+            if (step === 'language_selection') {
+                html = `<div class="text-center py-8"><h2 class="text-2xl font-bold text-blue-900 mb-6">Selecciona l'idioma</h2><div class="grid gap-3 max-w-xs mx-auto"><button onclick="window.setLanguage('ca')" class="p-3 bg-white border border-blue-200 rounded-lg shadow-sm hover:border-blue-500 font-semibold">Català</button></div></div>`;
+            } else if (step === 'intro') {
+                html = `<div class="text-center w-full animate-in"><div class="mb-8"><h2 class="text-2xl font-bold text-slate-800 mb-2">${t('intro_title')}</h2><p class="text-slate-600">${t('intro_text')}</p></div><div class="grid grid-cols-2 gap-6 mb-8 max-w-sm mx-auto"><div onclick="window.selectAvatar('female')" class="avatar-card cursor-pointer p-4 rounded-2xl border-2 border-slate-100 bg-white flex flex-col items-center group">${getProfessorAvatar("large", "happy", "female").replace('mb-4', 'mb-2')}<h3 class="text-lg font-bold text-slate-700">Pilar</h3></div><div onclick="window.selectAvatar('male')" class="avatar-card cursor-pointer p-4 rounded-2xl border-2 border-slate-100 bg-white flex flex-col items-center group">${getProfessorAvatar("large", "happy", "male").replace('mb-4', 'mb-2')}<h3 class="text-lg font-bold text-slate-700">Joan</h3></div></div></div>`;
+            } else if (step === 'context') {
+                 html = `<div class="text-center max-w-md animate-in">${getProfessorAvatar("large", "happy")}<div class="bg-blue-50 p-4 rounded-xl mb-6 text-left border border-blue-100 relative"><p class="text-blue-900 text-sm">${t('context_intro')}</p></div><div class="grid gap-3"><button onclick="window.selectContext('Formal', 'user_info')" class="w-full text-left px-6 py-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 transition-all font-medium text-slate-700">${t('ctx_formal')}</button><button onclick="window.selectContext('Esport', 'user_info')" class="w-full text-left px-6 py-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 transition-all font-medium text-slate-700">${t('ctx_sport')}</button></div></div>`;
+            } else if (step === 'user_info') {
+                 html = `<div class="w-full max-w-sm space-y-4 animate-in">${getProfessorAvatar("small", "neutral")}<h2 class="text-xl font-bold text-slate-800 text-center">${t('user_title')}</h2><input type="text" id="uid" class="w-full p-3 border rounded-lg" placeholder="${t('lbl_id')}"><div class="grid grid-cols-2 gap-4"><input type="number" id="uage" class="w-full p-3 border rounded-lg" placeholder="${t('lbl_age')}"><select id="usex" class="w-full p-3 border rounded-lg bg-white"><option value="F">${t('opt_woman')}</option><option value="M">${t('opt_man')}</option></select></div><div class="grid grid-cols-2 gap-4"><input type="text" id="uloc" class="w-full p-3 border rounded-lg" placeholder="${t('lbl_loc')}"><input type="text" id="ucountry" class="w-full p-3 border rounded-lg" placeholder="${t('lbl_country')}"></div><div class="p-3 border rounded-lg text-xs bg-white"><label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" id="input-consent"><span>${t('consent_text')}</span></label></div><button onclick="window.saveUser()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold shadow">${t('btn_accept')}</button></div>`;
+            } else if (step === 'scenario_analysis') {
+                html = `<div class="w-full max-w-sm space-y-4 animate-in">${getProfessorAvatar("large", "happy")}<h2 class="text-lg font-bold text-slate-800 text-center">${t('scenario_title')}</h2><div class="bg-white p-4 rounded-xl shadow-sm border space-y-3"><div><label class="text-xs font-bold text-slate-500">${t('lbl_group')}</label><input type="text" id="grp" class="w-full p-2 border rounded"></div><div><label class="text-xs font-bold text-slate-500">${t('scenario_dom')}</label><select id="dom" class="w-full p-2 border rounded"><option value="Psico">${t('dom_psico')}</option><option value="Coop">${t('dom_coop')}</option><option value="Op">${t('dom_op')}</option><option value="Coop-Op">${t('dom_coop_op')}</option></select></div><div><label class="text-xs font-bold text-slate-500">${t('lbl_comp')}</label><select id="comp" class="w-full p-2 border rounded"><option value="No">${t('no')}</option><option value="Si">${t('yes')}</option></select></div></div><button onclick="window.saveScenario()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold">${t('btn_continue')}</button></div>`;
+            } else if (step === 'participants_input') {
+                const showResults = state.data.competition === 'Si';
+                html = `<div class="w-full max-w-md space-y-4 animate-in"><h2 class="text-lg font-bold text-slate-800 text-center">${t('part_title')}</h2><div class="bg-blue-50 p-3 rounded-lg border"><h3 class="font-bold text-blue-800 text-xs">${t('lbl_p1')}</h3><div class="grid grid-cols-2 gap-2 mt-2"><select id="p1x" class="text-xs p-2 rounded bg-white border"><option value="M">${t('opt_man')}</option><option value="F">${t('opt_woman')}</option></select>${showResults ? `<select id="p1s" class="text-xs p-2 rounded bg-white border"><option value="Neutre">${t('st_none')}</option><option value="Guanya">${t('st_win')}</option></select>` : ''}</div><input id="p1d" class="w-full text-xs p-2 rounded border mt-2" placeholder="${t('lbl_desc_act')}"></div><div class="bg-orange-50 p-3 rounded-lg border"><h3 class="font-bold text-orange-800 text-xs">${t('lbl_p2')}</h3><div class="grid grid-cols-2 gap-2 mt-2"><select id="p2x" class="text-xs p-2 rounded bg-white border"><option value="F">${t('opt_woman')}</option><option value="M">${t('opt_man')}</option></select>${showResults ? `<select id="p2s" class="text-xs p-2 rounded bg-white border"><option value="Neutre">${t('st_none')}</option><option value="Perd">${t('st_lose')}</option></select>` : ''}</div><input id="p2d" class="w-full text-xs p-2 rounded border mt-2" placeholder="${t('lbl_desc_reac')}"></div><button onclick="window.saveParticipants()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold">${t('btn_continue')}</button></div>`;
+            } else if (step === 'conflict_action_main') {
+                 html = createSelectionScreen(t('act_q'), [{ l: t('cat_verbal'), fn: "window.selectActionCat(1)" }, { l: t('cat_mismatch'), fn: "window.selectActionCat(2)" }, { l: t('cat_perverse'), fn: "window.selectActionCat(3)" }], null, t('lbl_p1'));
+            } else if (step === 'conflict_action_sub') {
+                const cat = state.data.actionCat;
+                let opts = cat === 1 ? [{k:'sub_v1', v:1}, {k:'sub_v2', v:2}] : cat === 2 ? [{k:'sub_m1', v:1}, {k:'sub_m2', v:2}] : [{k:'sub_p1', v:1}, {k:'sub_p2', v:2}, {k:'sub_p3', v:3}, {k:'sub_p4', v:4}];
+                html = createSelectionScreen("Detall de l'acció", opts.map(o => ({ l: t(o.k), fn: `window.selectActionSub(${o.v}, '${o.k}')` })), null, t('lbl_p1'));
+            } else if (step === 'conflict_reaction') {
+                html = createSelectionScreen(t('reac_q'), [{ l: t('reac_verb'), fn: `window.selectReaction(1, 'reac_verb')` }, { l: t('reac_phys'), fn: `window.selectReaction(2, 'reac_phys')` }, { l: t('reac_mix'), fn: `window.selectReaction(3, 'reac_mix')` }], null, t('lbl_p2'));
+            } else if (step === 'calc_result') {
+                const score = state.data.thermometer;
+                let color = score >= 5 ? "bg-red-500" : score === 4 ? "bg-yellow-400" : "bg-green-500";
+                window.saveToCloud();
+                html = `<div class="text-center w-full animate-in"><h2 class="text-xl font-bold mb-6">${t('final_res_title')}</h2><div class="flex items-end justify-center gap-8 mb-6"><div class="w-16 h-48 bg-slate-200 rounded-full p-1 flex flex-col justify-end"><div class="${color} rounded-full" style="height: ${score*16}%"></div></div><div class="bg-white p-4 rounded-xl shadow-lg border text-left"><p class="text-2xl font-bold text-blue-900">${state.data.conflictType}</p><p class="text-sm text-slate-700 mt-2">${state.data.genderMix}</p></div></div><div id="save-msg" class="hidden mb-4 p-2 text-xs rounded border"></div><button onclick="window.nextConflict()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold mb-2">${t('btn_new_conflict')}</button><button onclick="window.finishSession()" class="w-full bg-slate-800 text-white p-3 rounded-lg font-bold">${t('btn_end_session')}</button></div>`;
+            } else if (step === 'session_summary') {
+                html = `<div class="text-center w-full animate-in py-6">${getProfessorAvatar("large", "happy")}<h2 class="text-2xl font-bold mb-2">${t('session_report_title')}</h2><p class="mb-6">${t('session_report_text')}</p><button onclick="window.location.reload()" class="w-full max-w-xs bg-blue-600 text-white p-3 rounded-lg font-bold">Nova Sessió</button></div>`;
+            }
+            container.innerHTML = html;
+            const btnBack = document.getElementById('btn-back');
+            if(state.history.length > 0 && step !== 'session_summary') btnBack.classList.remove('hidden'); else btnBack.classList.add('hidden');
+            if(typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function createSelectionScreen(title, options, helpType = null, subtitle = '') {
+            return `<div class="w-full max-w-md animate-in">${getProfessorAvatar("small", "neutral")}<div class="text-center mb-6"><h2 class="text-lg font-bold">${title}</h2><p class="text-blue-700 font-bold">${subtitle}</p></div><div class="grid gap-3">${options.map(o => `<button onclick="${o.fn}" class="w-full text-left px-5 py-4 bg-white border rounded-xl hover:bg-blue-50 transition-all flex items-center justify-between"><span class="text-sm font-medium">${o.l}</span><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="m9 18 6-6-6-6"/></svg></button>`).join('')}</div></div>`;
+        }
+
+        // Registre del Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker actiu'))
+                    .catch(err => console.error('Error SW', err));
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', render);
+    </script>
+</body>
+</html>
             100% { transform: translateY(0px); }
         }
         .avatar-card:hover {
