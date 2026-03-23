@@ -260,7 +260,7 @@
                 lbl_table_title: "Detall de Conflictes", tbl_type: "Tipus", tbl_action: "Acció"
             },
             es: {
-                app_name: "Conflictómetro",
+                app_name: "Conflictometer",
                 intro_title: "Bienvenid@",
                 intro_text: "Esta herramienta te ayudará a identificar y gestionar los conflictos motores.",
                 intro_select: "Elige quién quieres que te acompañe:",
@@ -328,7 +328,7 @@
                 session_report_title: "Session Summary", session_contact: "info: <a href='mailto:paulaplapla98@gmail.com'>paulaplapla98@gmail.com</a>"
             },
             fr: {
-                app_name: "Conflictomètre",
+                app_name: "Conflictometer",
                 intro_title: "Bienvenue",
                 intro_text: "Cet outil vous aidera à identifier et à gérer les conflits moteurs.",
                 intro_select: "Choisissez qui vous accompagne :",
