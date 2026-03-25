@@ -76,7 +76,7 @@
             </h3>
             <div id="modal-content" class="space-y-3 text-sm text-slate-600">
                 </div>
-            <button onclick="document.getElementById('help-modal').classList.add('hidden')" class="w-full mt-6 bg-blue-100 text-blue-700 py-2 rounded-lg font-bold hover:bg-blue-200 transition-colors">
+            <button id="btn-close-modal" onclick="document.getElementById('help-modal').classList.add('hidden')" class="w-full mt-6 bg-blue-100 text-blue-700 py-2 rounded-lg font-bold hover:bg-blue-200 transition-colors">
                 Tancar
             </button>
         </div>
@@ -99,7 +99,7 @@
                 <button id="btn-back" onclick="window.goBack()" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white hidden" title="Enrere">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
                 </button>
-                <button onclick="window.navigateTo('language_selection')" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white" title="Inici">
+                <button id="btn-home" onclick="window.navigateTo('language_selection')" class="p-2 rounded-full hover:bg-white/10 transition-colors text-white" title="Inici">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 </button>
             </div>
@@ -108,13 +108,13 @@
         <main id="content" class="flex-grow p-6 flex flex-col items-center justify-center text-slate-700 fade-in relative z-0 overflow-y-auto custom-scrollbar">
             <div class="animate-pulse flex flex-col items-center">
                 <div class="h-8 w-8 bg-blue-200 rounded-full mb-2"></div>
-                <p class="text-slate-400 text-sm">Carregant...</p>
+                <p class="text-slate-400 text-sm" id="loading-text">Carregant...</p>
             </div>
         </main>
 
         <footer class="bg-slate-50/80 p-4 text-center text-xs text-slate-400 border-t">
             <div class="footer-credits">
-                <p class="font-bold text-slate-600">Creat per Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)</p>
+                <p class="font-bold text-slate-600" id="footer-credits-text">Creat per Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)</p>
                 <div class="flex items-center justify-center gap-2 mt-2 opacity-70">
                     <img src="logo giam.jpg" alt="GIAM" class="h-6 object-contain">
                     <div id="connection-status" class="text-[9px]">...</div>
@@ -125,7 +125,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- CONFIG FIREBASE ---
@@ -139,7 +139,6 @@
             measurementId: "G-NVTYLW7P7T"
         };
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myFirebaseConfig;
-        
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'giam-app-research'; 
 
         let db; let auth; let currentUser = null;
@@ -149,16 +148,14 @@
             auth = getAuth(app);
             db = getFirestore(app);
             const initAuth = async () => {
-                try {
-                    await signInAnonymously(auth);
-                } catch (error) { console.error("Auth Error"); }
+                try { await signInAnonymously(auth); } catch (error) { console.error("Auth Error"); }
             };
             initAuth();
             onAuthStateChanged(auth, (user) => { 
                 if (user) { 
                     currentUser = user; 
                     const st = document.getElementById('connection-status');
-                    if(st) { st.innerText = "Online"; st.className = "text-[9px] text-green-600"; }
+                    if(st) { st.innerText = t('status_online'); st.className = "text-[9px] text-green-600"; }
                     syncOfflineData();
                 } 
             });
@@ -170,7 +167,7 @@
             const pending = JSON.parse(localStorage.getItem('giam_pending_conflicts') || '[]');
             if (pending.length === 0) return;
             const st = document.getElementById('connection-status');
-            if(st) st.innerText = "Sincronitzant...";
+            if(st) st.innerText = t('status_syncing');
             const newPending = [];
             for (const data of pending) {
                 try {
@@ -180,74 +177,38 @@
                 } catch (e) { newPending.push(data); }
             }
             localStorage.setItem('giam_pending_conflicts', JSON.stringify(newPending));
-            if(st) st.innerText = newPending.length > 0 ? "Pendent: " + newPending.length : "Online (Sincronitzat)";
+            if(st) st.innerText = newPending.length > 0 ? (t('status_pending') + newPending.length) : t('status_online');
         }
 
         // --- DICCIONARI D'IDIOMES ---
         const translations = {
             ca: {
                 app_name: "Conflictometer",
-                intro_title: "Benvingut/da",
-                intro_text: "Aquesta eina t'ajudarà a identificar i gestionar els conflictes motors.",
+                intro_title: "Benvingut/da", intro_text: "Aquesta eina t'ajudarà a identificar i gestionar els conflictes motors.",
                 intro_select: "Tria qui vols que t'acompanyi:",
                 btn_start: "Començar", btn_continue: "Continuar", btn_accept: "Acceptar i Continuar", btn_understand: "Entesos, continuar", btn_back_home: "Tornar a l'inici",
                 yes: "Sí", no: "No", 
                 context_title: "Context d'aplicació", context_intro: "Hola! Soc {name}. Situa'm una mica: <strong>En quin context et trobes?</strong>",
-                
-                ctx_formal: "Educació Formal (Educació Física)", 
-                ctx_sport: "Activitat Esportiva (Federat / Extraescolar)", 
-                ctx_other: "Altres (Estades, esplai, lleure, esbarjo...)",
-                
+                ctx_formal: "Educació Formal (Educació Física)", ctx_sport: "Activitat Esportiva (Federat / Extraescolar)", ctx_other: "Altres (Estades, esplai, lleure, esbarjo...)",
                 user_title: "Identificació i Consentiment", user_intro: "Necessito algunes dades bàsiques per a la recerca. No pateixis, tot és <strong>totalment anònim</strong>.",
                 lbl_id: "ID Usuari / Pseudònim", lbl_age: "Edat", lbl_sex: "Sexe", opt_woman: "Dona", opt_man: "Home", opt_other: "Altres", lbl_loc: "Localitat", lbl_country: "País",
                 consent_text: "<strong>Consentiment Informat:</strong> Accepto compartir les dades per a objectius acadèmics. Entenc que les dades seran tractades de forma anònima.",
-                
-                scenario_title: "Escenari del Conflicte", 
-                scenario_intro: "Molt bé. Ara descriu-me l'escenari on ha passat el conflicte.", 
+                scenario_title: "Escenari del Conflicte", scenario_intro: "Molt bé. Ara descriu-me l'escenari on ha passat el conflicte.", 
                 scenario_dom: "Tipus de situació motriu", 
                 dom_psico: "Psicomotor", dom_coop: "Cooperació", dom_op: "Oposició", dom_coop_op: "Cooperació-Oposició",
                 lbl_comp: "Hi ha resultat final? (Guanyadors/es-perdedors/es)", lbl_group: "Grup / Classe",
-                
-                help_title_scen: "Tipus de Situació Motriu",
-                help_psico: "<strong>Psicomotor:</strong> No hi ha companys/es ni adversaris.",
-                help_coop: "<strong>Cooperació:</strong> Només hi ha companys/es.",
-                help_op: "<strong>Oposició:</strong> Només hi ha adversaris.",
-                help_coop_op: "<strong>Cooperació-Oposició:</strong> Hi ha companys/es i adversaris al mateix temps.",
-
-                help_title_role: "Definició de Rols",
-                help_title_agent_def: "Agent Generador Conflictiu",
-                help_text_agent_def: "És la persona que inicia el conflicte, realitzant l'acció que provoca el desacord.",
-                help_title_reaction_def: "Resposta a l'estímul conflictiu",
-                help_text_reaction_def: "És la persona, que rep l'acció inicial i hi respon, generant la segona part del conflicte.",
-                
-                help_title_group: "Tipus d'Agrupament",
-                help_p_indiv: "<strong>Un/a sol/a alumne/a:</strong> Una única persona.",
-                help_p_pair: "<strong>Una parella:</strong> Dues persones.",
-                help_p_small: "<strong>Petit grup:</strong> De 3 a 6 persones.",
-                help_p_big: "<strong>Tot el grup:</strong> L'equip sencer o la classe.",
-
-                part_title: "Protagonistes", 
-                lbl_p1: "Persona 1 (Acció)", lbl_p2: "Persona 2 (Reacció)",
+                help_title_scen: "Tipus de Situació Motriu", help_psico: "<strong>Psicomotor:</strong> No hi ha companys/es ni adversaris.", help_coop: "<strong>Cooperació:</strong> Només hi ha companys/es.", help_op: "<strong>Oposició:</strong> Només hi ha adversaris.", help_coop_op: "<strong>Cooperació-Oposició:</strong> Hi ha companys/es i adversaris al mateix temps.",
+                help_title_role: "Definició de Rols", help_title_agent_def: "Agent Generador Conflictiu", help_text_agent_def: "És la persona que inicia el conflicte, realitzant l'acció que provoca el desacord.", help_title_reaction_def: "Resposta a l'estímul conflictiu", help_text_reaction_def: "És la persona, que rep l'acció inicial i hi respon, generant la segona part del conflicte.",
+                help_title_group: "Tipus d'Agrupament", help_p_indiv: "<strong>Un/a sol/a alumne/a:</strong> Una única persona.", help_p_pair: "<strong>Una parella:</strong> Dues persones.", help_p_small: "<strong>Petit grup:</strong> De 3 a 6 persones.", help_p_big: "<strong>Tot el grup:</strong> L'equip sencer o la classe.",
+                part_title: "Protagonistes", lbl_p1: "Persona 1 (Acción)", lbl_p2: "Persona 2 (Reacción)",
                 lbl_status: "Resultat", st_win: "Guanyador", st_lose: "Perdedor", st_none: "Neutre",
                 lbl_desc_act: "Quina acció ha fet?", lbl_desc_reac: "Quina reacció ha fet?",
-                
                 opt_masc: "Home", opt_fem: "Dona", opt_other: "Altres",
-                
                 act_title: "Què ha passat?", act_q: "Tria l'acció que ha provocat el conflicte:",
-                cat_verbal: "Problemes al pactar (Desacords al moment de pactar)", 
-                cat_mismatch: "Acció involuntària (Fer una acció de manera inconscient)", 
-                cat_perverse: "Acció voluntària (Fer una acció incorrecta de manera conscient)",
-                
-                sub_v1: "I. No s'han posat d'acord", sub_v2: "II. Ha trencat el pacte",
-                sub_m1: "I. S'ha equivocat (manca de destresa)", sub_m2: "II. Ha fet mal a algú (sense voler)",
-                sub_p1: "I. Ha fet trampes", sub_p2: "II. Ho ha fet malament expressament", 
-                sub_p3: "III. Agressió Física (voluntària)", sub_p4: "IV. Agressió verbal (insult)",
-                
+                cat_verbal: "Problemes al pactar (Desacords al moment de pactar)", cat_mismatch: "Acció involuntària (Fer una acció de manera inconscient)", cat_perverse: "Acció voluntària (Fer una acció incorrecta de manera conscient)",
+                sub_v1: "I. No s'han posat d'acord", sub_v2: "II. Ha trencat el pacte", sub_m1: "I. S'ha equivocat (manca de destresa)", sub_m2: "II. Ha fet mal a algú (sense voler)", sub_p1: "I. Ha fet trampes", sub_p2: "II. Ho ha fet malament expressament", sub_p3: "III. Agressió Física (voluntària)", sub_p4: "IV. Agressió verbal (insult)",
                 reac_title: "Reacció", reac_q: "Com ha respost l'altra persona?",
-                reac_verb: "Insults (Agressió verbal)", 
-                reac_phys: "Cops o empentes (Agressió física)", 
-                reac_mix: "Les dues coses alhora (Agressió verbal i física)",
-                
+                reac_verb: "Insults (Agressió verbal)", reac_phys: "Cops o empentes (Agressió física)", reac_mix: "Les dues coses alhora (Agressió verbal i física)",
                 final_res_title: "Quin tipus de conflicte motor s'ha generat?", final_type: "Tipus de CM", final_gender: "Gènere del Conflicte",
                 gen_mm: "Masculí (Home-Home)", gen_ff: "Femení (Dona-Dona)", gen_mf: "Mixte (Home-Dona)", gen_fm: "Mixte (Dona-Home)",
                 lbl_res_desc: "Format per:", res_action: "Acció:", res_reaction: "Reacció:",
@@ -257,112 +218,127 @@
                 session_contact: "per a més informació contactar amb: <a href='mailto:paulaplapla98@gmail.com' class='underline text-blue-600'>paulaplapla98@gmail.com</a>",
                 th_low: "Baixa Conflictivitat", th_med: "Mitjana Conflictivitat", th_high: "Alta Conflictivitat",
                 lbl_avg_temp: "Mitjana Termòmetre", lbl_gender_breakdown: "Per Gènere", gender_m: "Masc (H-H)", gender_f: "Fem (D-D)", gender_x: "Mixte (H-D)",
-                lbl_table_title: "Detall de Conflictes", tbl_type: "Tipus", tbl_action: "Acció"
+                lbl_table_title: "Detall de Conflictes", tbl_type: "Tipus", tbl_action: "Acció",
+                lbl_action_detail: "Detall de l'acció", lbl_level: "Nivell", ph_group: "3r A, Grup Blau...", lbl_type_prefix: "Tipus",
+                alert_fill_all: "Si us plau, omple tots els camps.", alert_consent: "Has d'acceptar el consentiment.", alert_group: "Si us plau, indica el grup/classe.", alert_desc: "Si us plau, descriu l'acció i la reacció.",
+                status_syncing: "Sincronitzant...", status_pending: "Pendent: ", status_online: "Online (Sincronitzat)", lbl_loading: "Carregant...", lbl_guide: "Guia", btn_close: "Tancar", btn_back: "Enrere", btn_home: "Inici", footer_credits: "Creat per Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)"
             },
             es: {
                 app_name: "Conflictometer",
-                intro_title: "Bienvenid@",
-                intro_text: "Esta herramienta te ayudará a identificar y gestionar los conflictos motores.",
-                intro_select: "Elige quién quieres que te acompañe:",
-                btn_continue: "Continuar", btn_accept: "Aceptar y Continuar",
+                intro_title: "Bienvenid@", intro_text: "Esta herramienta te ayudará a identificar y gestionar los conflictos motores.", intro_select: "Elige quién quieres que te acompañe:",
+                btn_start: "Comenzar", btn_continue: "Continuar", btn_accept: "Aceptar y Continuar", btn_understand: "Entendido, continuar", btn_back_home: "Volver al inicio",
+                yes: "Sí", no: "No",
                 context_title: "Contexto de aplicación", context_intro: "¡Hola! Soy {name}. Sitúame un poco: <strong>¿En qué contexto te encuentras?</strong>",
-                ctx_formal: "Educación Formal (Educación Física)", 
-                ctx_sport: "Actividad Deportiva (Federado / Extraescolar)", 
-                ctx_other: "Otros (Estancias, tiempo libre, ocio, recreo...)",
-                user_title: "Identificación y Consentimiento", 
-                user_intro: "Necesito algunos datos básicos para la investigación. No sufras, todo es <strong>totalmente anónimo</strong>.",
-                lbl_id: "ID Usuario / Pseudónimo", lbl_age: "Edad", lbl_sex: "Sexo", lbl_loc: "Localidad", lbl_country: "País",
-                opt_woman: "Mujer", opt_man: "Hombre", opt_other: "Otros",
+                ctx_formal: "Educación Formal (Educación Física)", ctx_sport: "Actividad Deportiva (Federado / Extraescolar)", ctx_other: "Otros (Estancias, tiempo libre, ocio, recreo...)",
+                user_title: "Identificación y Consentimiento", user_intro: "Necesito algunos datos básicos para la investigación. No sufras, todo es <strong>totalmente anónimo</strong>.",
+                lbl_id: "ID Usuario / Pseudónimo", lbl_age: "Edad", lbl_sex: "Sexo", opt_woman: "Mujer", opt_man: "Hombre", opt_other: "Otros", lbl_loc: "Localidad", lbl_country: "País",
                 consent_text: "<strong>Consentimiento Informado:</strong> Acepto compartir los datos para objetivos académicos. Entiendo que los datos serán tratados de forma anónima.",
                 scenario_title: "Escenario del Conflicto", scenario_intro: "Muy bien. Ahora descríbeme el escenario donde ha ocurrido el conflicto.",
-                scenario_dom: "Tipo de situación motriz",
-                dom_psico: "Psicomotor", dom_coop: "Cooperación", dom_op: "Oposición", dom_coop_op: "Cooperación-Oposición",
-                help_psico: "<strong>Psicomotor:</strong> No hay compañeros/as ni adversarios.",
-                help_coop: "<strong>Cooperación:</strong> Solo hay compañeros/as.",
-                help_op: "<strong>Oposición:</strong> Solo hay adversarios.",
-                help_coop_op: "<strong>Cooperación-Oposición:</strong> Hay compañeros/as y adversarios al mismo tiempo.",
+                scenario_dom: "Tipo de situación motriz", dom_psico: "Psicomotor", dom_coop: "Cooperación", dom_op: "Oposición", dom_coop_op: "Cooperación-Oposición",
+                lbl_comp: "¿Hay resultado final? (Ganadores/as-perdedores/as)", lbl_group: "Grupo / Clase",
+                help_title_scen: "Tipo de Situación Motriz", help_psico: "<strong>Psicomotor:</strong> No hay compañeros/as ni adversarios.", help_coop: "<strong>Cooperación:</strong> Solo hay compañeros/as.", help_op: "<strong>Oposición:</strong> Solo hay adversarios.", help_coop_op: "<strong>Cooperación-Oposición:</strong> Hay compañeros/as y adversarios al mismo tiempo.",
+                help_title_role: "Definición de Roles", help_title_agent_def: "Agente Generador Conflictivo", help_text_agent_def: "Es la persona que inicia el conflicto, realizando la acción que provoca el desacuerdo.", help_title_reaction_def: "Respuesta al estímulo conflictivo", help_text_reaction_def: "Es la persona que recibe la acción inicial y responde, generando la segunda parte del conflicto.",
+                help_title_group: "Tipo de Agrupamiento", help_p_indiv: "<strong>Un/a solo/a alumno/a:</strong> Una única persona.", help_p_pair: "<strong>Una pareja:</strong> Dos personas.", help_p_small: "<strong>Pequeño grupo:</strong> De 3 a 6 personas.", help_p_big: "<strong>Todo el grupo:</strong> El equipo entero o la clase.",
                 part_title: "Protagonistas", lbl_p1: "Persona 1 (Acción)", lbl_p2: "Persona 2 (Reacción)",
-                lbl_status: "Resultado", st_win: "Ganador", st_lose: "Perdedor", st_none: "Neutre",
-                opt_masc: "Hombre", opt_fem: "Mujer", opt_other: "Otros",
+                lbl_status: "Resultado", st_win: "Ganador", st_lose: "Perdedor", st_none: "Neutro",
+                lbl_desc_act: "¿Qué acción ha hecho?", lbl_desc_reac: "¿Qué reacción ha hecho?",
+                opt_masc: "Hombre", opt_fem: "Mujer",
                 act_title: "¿Qué ha pasado?", act_q: "Elige la acción que ha provocado el conflicto:",
-                cat_verbal: "Problemes al pactar (Desacuerdos al pactar)", 
-                cat_mismatch: "Acción involuntaria (Acción inconsciente)", 
-                cat_perverse: "Acción voluntaria (Acción incorrecta consciente)",
-                sub_v1: "I. No se han puesto de acuerdo", sub_v2: "II. Ha roto el pacto",
-                sub_m1: "I. Se ha equivocado (falta de destreza)", sub_m2: "II. Ha hecho daño (sin querer)",
-                sub_p1: "I. Ha hecho trampas", sub_p2: "II. Lo ha hecho mal a propósito", sub_p3: "III. Agresión Física (voluntaria)", sub_p4: "IV. Agresión verbale (insulto)",
+                cat_verbal: "Problemas al pactar (Desacuerdos al pactar)", cat_mismatch: "Acción involuntaria (Acción inconsciente)", cat_perverse: "Acción voluntaria (Acción incorrecta consciente)",
+                sub_v1: "I. No se han puesto de acuerdo", sub_v2: "II. Ha roto el pacto", sub_m1: "I. Se ha equivocado (falta de destreza)", sub_m2: "II. Ha hecho daño (sin querer)", sub_p1: "I. Ha hecho trampas", sub_p2: "II. Lo ha hecho mal a propósito", sub_p3: "III. Agresión Física (voluntaria)", sub_p4: "IV. Agresión verbal (insulto)",
                 reac_title: "Reacción", reac_q: "¿Cómo ha respondido la otra persona?",
-                reac_verb: "Insultos (Agresión verbale)", reac_phys: "Golpes o empujones (Agresión física)", reac_mix: "Las dos cosas a la vez (Agresión verbale y física)",
+                reac_verb: "Insultos (Agresión verbal)", reac_phys: "Golpes o empujones (Agresión física)", reac_mix: "Las dos cosas a la vez (Agresión verbal y física)",
                 final_res_title: "¿Qué tipo de conflicto motor se ha generado?", final_type: "Tipo de CM", final_gender: "Género del Conflicto",
+                gen_mm: "Masculino (H-H)", gen_ff: "Femenino (M-M)", gen_mf: "Mixto (H-M)", gen_fm: "Mixto (M-H)",
+                lbl_res_desc: "Formado por:", res_action: "Acción:", res_reaction: "Reacción:",
                 saved: "✓ Datos guardados", saved_offline: "⚠ Guardado en móvil (Pendiente enviar)",
-                session_report_title: "Resumen de Sesión", session_contact: "para más información contactar con: <a href='mailto:paulaplapla98@gmail.com'>paulaplapla98@gmail.com</a>"
+                lbl_another_conflict: "¿Ha habido otro conflicto en esta sesión?", btn_new_conflict: "Sí (Registrar nuevo)", btn_end_session: "No (Finalizar)",
+                session_report_title: "Resumen de Sesión", session_report_text: "Sesión finalizada correctamente. ¡Gracias por tu colaboración!", session_count: "Conflictos registrados:", session_new_btn: "Nueva Sesión",
+                session_contact: "para más información contactar con: <a href='mailto:paulaplapla98@gmail.com' class='underline text-blue-600'>paulaplapla98@gmail.com</a>",
+                th_low: "Baja Conflictividad", th_med: "Media Conflictividad", th_high: "Alta Conflictividad",
+                lbl_avg_temp: "Media Termómetro", lbl_gender_breakdown: "Por Género", gender_m: "Masc (H-H)", gender_f: "Fem (M-M)", gender_x: "Mixto (H-M)",
+                lbl_table_title: "Detalle de Conflictos", tbl_type: "Tipo", tbl_action: "Acción",
+                lbl_action_detail: "Detalle de la acción", lbl_level: "Nivel", ph_group: "3º A, Grupo Azul...", lbl_type_prefix: "Tipo",
+                alert_fill_all: "Por favor, rellena todos los campos.", alert_consent: "Debes aceptar el consentimiento.", alert_group: "Por favor, indica el grupo/clase.", alert_desc: "Por favor, describe la acción y la reacción.",
+                status_syncing: "Sincronizando...", status_pending: "Pendiente: ", status_online: "Online (Sincronizado)", lbl_loading: "Cargando...", lbl_guide: "Guía", btn_close: "Cerrar", btn_back: "Atrás", btn_home: "Inicio", footer_credits: "Creado por Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)"
             },
             en: {
                 app_name: "Conflictometer",
-                intro_title: "Welcome",
-                intro_text: "This tool will help you identify and manage motor conflicts.",
-                intro_select: "Choose your companion:",
-                btn_continue: "Continue", btn_accept: "Accept and Continue",
+                intro_title: "Welcome", intro_text: "This tool will help you identify and manage motor conflicts.", intro_select: "Choose your companion:",
+                btn_start: "Start", btn_continue: "Continue", btn_accept: "Accept and Continue", btn_understand: "Understood, continue", btn_back_home: "Back to home",
+                yes: "Yes", no: "No",
                 context_title: "Application Context", context_intro: "Hi! I'm {name}. First, give me some context: <strong>Where are you?</strong>",
                 ctx_formal: "Formal Education", ctx_sport: "Club Sports", ctx_other: "Other (Camps, leisure, recreation...)",
                 user_title: "ID & Consent", user_intro: "I need some basic data for research. Everything is <strong>anonymous</strong>.",
-                lbl_id: "User ID", lbl_age: "Age", lbl_sex: "Sex", lbl_loc: "City/Locality", lbl_country: "Country",
-                opt_woman: "Female", opt_man: "Male", opt_other: "Other",
+                lbl_id: "User ID", lbl_age: "Age", lbl_sex: "Sex", opt_woman: "Female", opt_man: "Male", opt_other: "Other", lbl_loc: "City/Locality", lbl_country: "Country",
                 consent_text: "<strong>Informed Consent:</strong> I agree to share data for academic purposes. Data is treated anonymously.",
                 scenario_title: "Conflict Scenario", scenario_intro: "Now describe the scenario.",
-                scenario_dom: "Motor situation type",
-                dom_psico: "Psychomotor", dom_coop: "Cooperation", dom_op: "Opposition", dom_coop_op: "Coop-Opposition",
-                help_psico: "<strong>Psychomotor:</strong> No partners or opponents.",
-                help_coop: "<strong>Cooperation:</strong> Only partners.",
-                help_op: "<strong>Opposition:</strong> Only opponents.",
-                help_coop_op: "<strong>Coop-Opposition:</strong> Both at the same time.",
+                scenario_dom: "Motor situation type", dom_psico: "Psychomotor", dom_coop: "Cooperation", dom_op: "Opposition", dom_coop_op: "Coop-Opposition",
                 lbl_comp: "Final Result?", lbl_group: "Group / Class",
+                help_title_scen: "Motor Situation Type", help_psico: "<strong>Psychomotor:</strong> No partners or opponents.", help_coop: "<strong>Cooperation:</strong> Only partners.", help_op: "<strong>Opposition:</strong> Only opponents.", help_coop_op: "<strong>Coop-Opposition:</strong> Both at the same time.",
+                help_title_role: "Role Definition", help_title_agent_def: "Conflictive Generating Agent", help_text_agent_def: "The person who initiates the conflict, performing the action that causes the disagreement.", help_title_reaction_def: "Response to the conflictive stimulus", help_text_reaction_def: "The person who receives the initial action and responds, generating the second part of the conflict.",
+                help_title_group: "Grouping Type", help_p_indiv: "<strong>Single student:</strong> One person.", help_p_pair: "<strong>Pair:</strong> Two people.", help_p_small: "<strong>Small group:</strong> 3 to 6 people.", help_p_big: "<strong>Whole group:</strong> The entire team or class.",
                 part_title: "Protagonists", lbl_p1: "Person 1 (Action)", lbl_p2: "Person 2 (Reaction)",
                 lbl_status: "Result", st_win: "Winner", st_lose: "Loser", st_none: "Neutral",
-                opt_masc: "Male", opt_fem: "Female", opt_other: "Other",
+                lbl_desc_act: "What action did they take?", lbl_desc_reac: "What reaction did they have?",
+                opt_masc: "Male", opt_fem: "Female",
                 act_title: "What happened?", act_q: "Select the action:",
                 cat_verbal: "Pact Issues", cat_mismatch: "Involuntary (Unconscious)", cat_perverse: "Voluntary (Consciously incorrect)",
+                sub_v1: "I. Did not agree", sub_v2: "II. Broke the pact", sub_m1: "I. Made a mistake (lack of skill)", sub_m2: "II. Hurt someone (unintentionally)", sub_p1: "I. Cheated", sub_p2: "II. Did it wrong on purpose", sub_p3: "III. Physical Aggression (voluntary)", sub_p4: "IV. Verbal Aggression (insult)",
                 reac_title: "Reaction", reac_q: "How did they respond?",
+                reac_verb: "Insults (Verbal aggression)", reac_phys: "Hits or pushes (Physical aggression)", reac_mix: "Both at once (Verbal and physical aggression)",
                 final_res_title: "Motor conflict generated", final_type: "MC Type", final_gender: "Conflict Gender",
+                gen_mm: "Male (M-M)", gen_ff: "Female (F-F)", gen_mf: "Mixed (M-F)", gen_fm: "Mixed (F-M)",
+                lbl_res_desc: "Formed by:", res_action: "Action:", res_reaction: "Reaction:",
                 saved: "✓ Data saved", saved_offline: "⚠ Saved offline",
-                session_report_title: "Session Summary", session_contact: "info: <a href='mailto:paulaplapla98@gmail.com'>paulaplapla98@gmail.com</a>"
+                lbl_another_conflict: "Was there another conflict in this session?", btn_new_conflict: "Yes (Register new)", btn_end_session: "No (Finish)",
+                session_report_title: "Session Summary", session_report_text: "Session finished successfully. Thank you for your collaboration!", session_count: "Conflicts registered:", session_new_btn: "New Session",
+                session_contact: "info: <a href='mailto:paulaplapla98@gmail.com' class='underline text-blue-600'>paulaplapla98@gmail.com</a>",
+                th_low: "Low Conflict", th_med: "Medium Conflict", th_high: "High Conflict",
+                lbl_avg_temp: "Thermometer Average", lbl_gender_breakdown: "By Gender", gender_m: "Male (M-M)", gender_f: "Female (F-F)", gender_x: "Mixed (M-F)",
+                lbl_table_title: "Conflict Details", tbl_type: "Type", tbl_action: "Action",
+                lbl_action_detail: "Action details", lbl_level: "Level", ph_group: "3rd Grade, Blue Group...", lbl_type_prefix: "Type",
+                alert_fill_all: "Please fill in all fields.", alert_consent: "You must accept the consent.", alert_group: "Please indicate the group/class.", alert_desc: "Please describe the action and reaction.",
+                status_syncing: "Syncing...", status_pending: "Pending: ", status_online: "Online (Synced)", lbl_loading: "Loading...", lbl_guide: "Guide", btn_close: "Close", btn_back: "Back", btn_home: "Home", footer_credits: "Created by Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)"
             },
             fr: {
                 app_name: "Conflictometer",
-                intro_title: "Bienvenue",
-                intro_text: "Cet outil vous aidera à identifier et à gérer les conflits moteurs.",
-                intro_select: "Choisissez qui vous accompagne :",
-                btn_continue: "Continuer", btn_accept: "Accepter et Continuer",
+                intro_title: "Bienvenue", intro_text: "Cet outil vous aidera à identifier et à gérer les conflits moteurs.", intro_select: "Choisissez qui vous accompagne :",
+                btn_start: "Commencer", btn_continue: "Continuer", btn_accept: "Accepter et Continuer", btn_understand: "Compris, continuer", btn_back_home: "Retour à l'accueil",
+                yes: "Oui", no: "Non",
                 context_title: "Contexte d'application", context_intro: "Bonjour ! Je suis {name}. D'abord, situez-moi : <strong>Dans quel contexte vous trouvez-vous ?</strong>",
-                ctx_formal: "Éducation Formelle (EPS)", 
-                ctx_sport: "Activité Sportive (Fédérée / Périscolaire)", 
-                ctx_other: "Autres (Séjours, loisirs, récréation...)",
+                ctx_formal: "Éducation Formelle (EPS)", ctx_sport: "Activité Sportive (Fédérée / Périscolaire)", ctx_other: "Autres (Séjours, loisirs, récréation...)",
                 user_title: "Identification et Consentement", user_intro: "J'ai besoin de quelques données de base pour la recherche. Tout est <strong>totalement anonyme</strong>.",
-                lbl_id: "ID Utilisateur / Pseudonyme", lbl_age: "Âge", lbl_sex: "Sexe", lbl_loc: "Localité", lbl_country: "Pays",
-                opt_woman: "Femme", opt_man: "Homme", opt_other: "Autres",
+                lbl_id: "ID Utilisateur / Pseudonyme", lbl_age: "Âge", lbl_sex: "Sexe", opt_woman: "Femme", opt_man: "Homme", opt_other: "Autres", lbl_loc: "Localité", lbl_country: "Pays",
                 consent_text: "<strong>Consentement Éclairé :</strong> J'accepte de partager les données à des fins académiques.",
                 scenario_title: "Scénario du Conflit", scenario_intro: "Très bien. Décrivez maintenant le scénario où le conflit a eu lieu.",
-                scenario_dom: "Type de situation motrice",
-                dom_psico: "Psychomoteur", dom_coop: "Coopération", dom_op: "Opposition", dom_coop_op: "Coop-Opposition",
-                help_psico: "<strong>Psychomoteur :</strong> Pas de partenaires ni d'adversaires.",
-                help_coop: "<strong>Coopération :</strong> Uniquement des partenaires.",
-                help_op: "<strong>Opposition :</strong> Uniquement des adversaires.",
-                help_coop_op: "<strong>Coop-Opposition :</strong> Partenaires et adversaires en même temps.",
+                scenario_dom: "Type de situation motrice", dom_psico: "Psychomoteur", dom_coop: "Coopération", dom_op: "Opposition", dom_coop_op: "Coop-Opposition",
+                lbl_comp: "Y a-t-il un résultat final ?", lbl_group: "Groupe / Classe",
+                help_title_scen: "Type de Situation Motrice", help_psico: "<strong>Psychomoteur :</strong> Pas de partenaires ni d'adversaires.", help_coop: "<strong>Coopération :</strong> Uniquement des partenaires.", help_op: "<strong>Opposition :</strong> Uniquement des adversaires.", help_coop_op: "<strong>Coop-Opposition :</strong> Partenaires et adversaires en même temps.",
+                help_title_role: "Définition des Rôles", help_title_agent_def: "Agent Générateur de Conflit", help_text_agent_def: "C'est la personne qui initie le conflit, en effectuant l'action qui provoque le désaccord.", help_title_reaction_def: "Réponse au stimulus conflictuel", help_text_reaction_def: "C'est la personne qui reçoit l'action initiale et y répond, générant la deuxième partie du conflit.",
+                help_title_group: "Type de Regroupement", help_p_indiv: "<strong>Un seul élève :</strong> Une seule personne.", help_p_pair: "<strong>Une paire :</strong> Deux personnes.", help_p_small: "<strong>Petit groupe :</strong> De 3 à 6 personnes.", help_p_big: "<strong>Tout le groupe :</strong> L'équipe entière ou la classe.",
                 part_title: "Protagonistes", lbl_p1: "Personne 1 (Action)", lbl_p2: "Personne 2 (Réaction)",
                 lbl_status: "Résultat", st_win: "Gagnant", st_lose: "Perdant", st_none: "Neutre",
-                opt_masc: "Homme", opt_fem: "Femme", opt_other: "Autres",
+                lbl_desc_act: "Quelle action a été faite ?", lbl_desc_reac: "Quelle réaction a été faite ?",
+                opt_masc: "Homme", opt_fem: "Femme",
                 act_title: "Que s'est-il passé ?", act_q: "Choisissez l'action qui a provoqué le conflit :",
-                cat_verbal: "Problèmes de pacte (Désaccords lors du pacte)", 
-                cat_mismatch: "Action involontaire (Action inconsciente)", 
-                cat_perverse: "Action volontaire (Action incorrecte consciente)",
-                sub_v1: "I. Ils ne sont pas tombés d'accord", sub_v2: "II. Le pacte a été rompu",
-                sub_m1: "I. Erreur (manque d'adresse)", sub_m2: "II. Quelqu'un a été blessé (sans le vouloir)",
-                sub_p1: "I. Triche", sub_p2: "II. Mal fait exprès", sub_p3: "III. Agresión Physique (voluntaria)", sub_p4: "IV. Agresión verbale (insulto)",
+                cat_verbal: "Problèmes de pacte (Désaccords lors du pacte)", cat_mismatch: "Action involontaire (Action inconsciente)", cat_perverse: "Action volontaire (Action incorrecte consciente)",
+                sub_v1: "I. Ils ne sont pas tombés d'accord", sub_v2: "II. Le pacte a été rompu", sub_m1: "I. Erreur (manque d'adresse)", sub_m2: "II. Quelqu'un a été blessé (sans le vouloir)", sub_p1: "I. Triche", sub_p2: "II. Mal fait exprès", sub_p3: "III. Agression Physique (volontaire)", sub_p4: "IV. Agression verbale (insulte)",
                 reac_title: "Réaction", reac_q: "Comment l'autre personne a-t-elle répondu ?",
                 reac_verb: "Insultes (Agression verbale)", reac_phys: "Coups ou bousculades (Agression physique)", reac_mix: "Les deux à la fois (Agression verbale et physique)",
                 final_res_title: "Quel type de conflit moteur a été généré ?", final_type: "Type de CM", final_gender: "Genre du Conflit",
+                gen_mm: "Masculin (H-H)", gen_ff: "Féminin (F-F)", gen_mf: "Mixte (H-F)", gen_fm: "Mixte (F-H)",
+                lbl_res_desc: "Formé par :", res_action: "Action :", res_reaction: "Réaction :",
                 saved: "✓ Données enregistrées", saved_offline: "⚠ Enregistré localement (En attente)",
-                session_report_title: "Résumé de la session", session_contact: "info : <a href='mailto:paulaplapla98@gmail.com'>paulaplapla98@gmail.com</a>"
+                lbl_another_conflict: "Y a-t-il eu un autre conflit dans cette session ?", btn_new_conflict: "Oui (Enregistrer nouveau)", btn_end_session: "Non (Terminer)",
+                session_report_title: "Résumé de la session", session_report_text: "Session terminée avec succès. Merci pour votre collaboration !", session_count: "Conflits enregistrés :", session_new_btn: "Nouvelle Session",
+                session_contact: "info : <a href='mailto:paulaplapla98@gmail.com' class='underline text-blue-600'>paulaplapla98@gmail.com</a>",
+                th_low: "Faible Conflit", th_med: "Conflit Moyen", th_high: "Fort Conflit",
+                lbl_avg_temp: "Moyenne Thermomètre", lbl_gender_breakdown: "Par Genre", gender_m: "Masc (H-H)", gender_f: "Fém (F-F)", gender_x: "Mixte (H-F)",
+                lbl_table_title: "Détails des conflits", tbl_type: "Type", tbl_action: "Action",
+                lbl_action_detail: "Détail de l'action", lbl_level: "Niveau", ph_group: "3ème A, Groupe Bleu...", lbl_type_prefix: "Type",
+                alert_fill_all: "Veuillez remplir tous les champs.", alert_consent: "Vous devez accepter le consentement.", alert_group: "Veuillez indiquer le groupe/classe.", alert_desc: "Veuillez décrire l'action et la réaction.",
+                status_syncing: "Synchronisation...", status_pending: "En attente : ", status_online: "En ligne (Synchronisé)", lbl_loading: "Chargement...", lbl_guide: "Guide", btn_close: "Fermer", btn_back: "Retour", btn_home: "Accueil", footer_credits: "Créé par Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)"
             }
         };
 
@@ -408,13 +384,28 @@
         }
 
         function getName() {
-            const t = state.data.avatarType;
-            if (state.data.lang === 'ca') return t === 'female' ? "la Pilar" : "en Joan";
-            return t === 'female' ? "Pilar" : "Joan";
+            const ty = state.data.avatarType;
+            if (state.data.lang === 'ca') return ty === 'female' ? "la Pilar" : "en Joan";
+            return ty === 'female' ? "Pilar" : "Joan";
+        }
+
+        function updateStaticUI() {
+            document.getElementById('header-title').innerText = t('app_name');
+            document.getElementById('btn-back').title = t('btn_back');
+            document.getElementById('btn-home').title = t('btn_home');
+            document.getElementById('footer-credits-text').innerText = t('footer_credits');
+            document.getElementById('btn-close-modal').innerText = t('btn_close');
+            document.getElementById('modal-title').innerText = t('lbl_guide');
+            const loadingTxt = document.getElementById('loading-text');
+            if (loadingTxt) loadingTxt.innerText = t('lbl_loading');
         }
 
         // --- NAVIGATION & LOGIC ---
-        window.setLanguage = (lang) => { state.data.lang = lang; document.getElementById('header-title').innerText = t('app_name'); window.navigateTo('intro'); };
+        window.setLanguage = (lang) => { 
+            state.data.lang = lang; 
+            updateStaticUI();
+            window.navigateTo('intro'); 
+        };
         window.selectAvatar = (type) => { state.data.avatarType = type; window.navigateTo('context'); };
         window.selectContext = (value, nextStep) => { state.data.context = value; window.navigateTo(nextStep); };
         window.navigateTo = (step) => {
@@ -447,14 +438,14 @@
              const loc = document.getElementById('uloc').value;
              const country = document.getElementById('ucountry').value;
              const consent = document.getElementById('input-consent').checked;
-             if(!uid || !age || !sex || !loc || !country) return alert("Si us plau, omple tots els camps.");
-             if(!consent) return alert("Has d'acceptar el consentiment.");
+             if(!uid || !age || !sex || !loc || !country) return alert(t('alert_fill_all'));
+             if(!consent) return alert(t('alert_consent'));
              state.data.userId = uid; state.data.age = age; state.data.sex = sex; state.data.locality = loc; state.data.country = country; state.data.consent = true;
              window.navigateTo('scenario_analysis');
         };
         window.saveScenario = () => {
              const grp = document.getElementById('grp').value;
-             if(!grp) return alert("Si us plau, indica el grup/classe.");
+             if(!grp) return alert(t('alert_group'));
              state.data.group = grp;
              state.data.domain = document.getElementById('dom').value;
              state.data.competition = document.getElementById('comp').value;
@@ -463,9 +454,9 @@
         window.saveParticipants = () => {
              const d1 = document.getElementById('p1d').value;
              const d2 = document.getElementById('p2d').value;
-             if(!d1 || !d2) return alert("Si us plau, descriu l'acció i la reacció.");
-             state.data.p1 = { status: document.getElementById('p1s') ? document.getElementById('p1s').value : 'Neutre', sex: document.getElementById('p1x').value, desc: d1 };
-             state.data.p2 = { status: document.getElementById('p2s') ? document.getElementById('p2s').value : 'Neutre', sex: document.getElementById('p2x').value, desc: d2 };
+             if(!d1 || !d2) return alert(t('alert_desc'));
+             state.data.p1 = { status: document.getElementById('p1s') ? document.getElementById('p1s').value : t('st_none'), sex: document.getElementById('p1x').value, desc: d1 };
+             state.data.p2 = { status: document.getElementById('p2s') ? document.getElementById('p2s').value : t('st_none'), sex: document.getElementById('p2x').value, desc: d2 };
              window.navigateTo('conflict_action_main');
         };
         window.selectActionCat = (cat) => { state.data.actionCat = cat; window.navigateTo('conflict_action_sub'); };
@@ -477,15 +468,15 @@
             const re = state.data.reaction;
             let type = "Unknown";
             if (ac === 1) { 
-                if (re === 1) type = "Tipus I"; else if (re === 2) type = "Tipus II"; else if (re === 3) type = "Tipus IV"; 
+                if (re === 1) type = `${t('lbl_type_prefix')} I`; else if (re === 2) type = `${t('lbl_type_prefix')} II`; else if (re === 3) type = `${t('lbl_type_prefix')} IV`; 
             } else if (ac === 2) { 
-                if (re === 1) type = "Tipus III"; else if (re === 2) type = "Tipus V"; else if (re === 3) type = "Tipus VII";
+                if (re === 1) type = `${t('lbl_type_prefix')} III`; else if (re === 2) type = `${t('lbl_type_prefix')} V`; else if (re === 3) type = `${t('lbl_type_prefix')} VII`;
             } else if (ac === 3) { 
-                if (re === 1) type = "Tipus VI"; else if (re === 2) type = "Tipus VIII"; else if (re === 3) type = "Tipus IX";
+                if (re === 1) type = `${t('lbl_type_prefix')} VI`; else if (re === 2) type = `${t('lbl_type_prefix')} VIII`; else if (re === 3) type = `${t('lbl_type_prefix')} IX`;
             }
             state.data.conflictType = type; state.data.thermometer = ac + re; 
             const s1 = state.data.p1.sex; const s2 = state.data.p2.sex;
-            let gm = "Altres";
+            let gm = t('opt_other');
             if (s1 === 'M' && s2 === 'M') gm = t('gen_mm'); else if (s1 === 'F' && s2 === 'F') gm = t('gen_ff'); else if (s1 === 'M' && s2 === 'F') gm = t('gen_mf'); else if (s1 === 'F' && s2 === 'M') gm = t('gen_fm');
             state.data.genderMix = gm; window.navigateTo('calc_result');
         }
@@ -566,10 +557,10 @@
                     <button onclick="window.saveUser()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">${t('btn_accept')}</button>
                  </div>`;
             } else if (step === 'scenario_analysis') {
-                html = `<div class="w-full max-w-sm space-y-4 animate-in">${getProfessorAvatar("large", "happy")}<div class="bg-blue-50 p-4 rounded-xl mb-4 text-left border border-blue-100 relative"><div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[10px] border-b-blue-50"></div><p class="text-blue-900 text-sm">${t('scenario_intro')}</p></div><h2 class="text-lg font-bold text-slate-800 text-center">${t('scenario_title')}</h2><div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3"><div><label class="text-xs font-bold text-slate-500">${t('lbl_group')}</label><input type="text" id="grp" class="w-full p-2 border rounded text-sm bg-white" placeholder="3r A, Grup Blau..."></div><div><div class="flex items-center justify-between mb-1"><label class="text-xs font-bold text-slate-500">${t('scenario_dom')}</label><button onclick="window.openHelp('scenario')" class="text-blue-500 p-1 bg-blue-50 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button></div><select id="dom" class="w-full p-2 border rounded text-sm bg-white"><option value="Psico">${t('dom_psico')}</option><option value="Coop">${t('dom_coop')}</option><option value="Op">${t('dom_op')}</option><option value="Coop-Op">${t('dom_coop_op')}</option></select></div><div><label class="text-xs font-bold text-slate-500">${t('lbl_comp')}</label><select id="comp" class="w-full p-2 border rounded text-sm bg-white" onchange="render()"><option value="No" ${state.data.competition === 'No' ? 'selected' : ''}>${t('no')}</option><option value="Si" ${state.data.competition === 'Si' ? 'selected' : ''}>${t('yes')}</option></select></div></div><button onclick="window.saveScenario()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">${t('btn_continue')}</button></div>`;
+                html = `<div class="w-full max-w-sm space-y-4 animate-in">${getProfessorAvatar("large", "happy")}<div class="bg-blue-50 p-4 rounded-xl mb-4 text-left border border-blue-100 relative"><div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[10px] border-b-blue-50"></div><p class="text-blue-900 text-sm">${t('scenario_intro')}</p></div><h2 class="text-lg font-bold text-slate-800 text-center">${t('scenario_title')}</h2><div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3"><div><label class="text-xs font-bold text-slate-500">${t('lbl_group')}</label><input type="text" id="grp" class="w-full p-2 border rounded text-sm bg-white" placeholder="${t('ph_group')}"></div><div><div class="flex items-center justify-between mb-1"><label class="text-xs font-bold text-slate-500">${t('scenario_dom')}</label><button onclick="window.openHelp('scenario')" class="text-blue-500 p-1 bg-blue-50 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button></div><select id="dom" class="w-full p-2 border rounded text-sm bg-white"><option value="Psico">${t('dom_psico')}</option><option value="Coop">${t('dom_coop')}</option><option value="Op">${t('dom_op')}</option><option value="Coop-Op">${t('dom_coop_op')}</option></select></div><div><label class="text-xs font-bold text-slate-500">${t('lbl_comp')}</label><select id="comp" class="w-full p-2 border rounded text-sm bg-white" onchange="render()"><option value="No" ${state.data.competition === 'No' ? 'selected' : ''}>${t('no')}</option><option value="Si" ${state.data.competition === 'Si' ? 'selected' : ''}>${t('yes')}</option></select></div></div><button onclick="window.saveScenario()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">${t('btn_continue')}</button></div>`;
             } else if (step === 'participants_input') {
                 const showResults = state.data.competition === 'Si';
-                html = `<div class="w-full max-w-md space-y-4 animate-in"><h2 class="text-lg font-bold text-slate-800 text-center">${t('part_title')}</h2><div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><div class="flex items-center justify-between mb-2"><h3 class="font-bold text-blue-800 text-xs">${t('lbl_p1')}</h3><button onclick="window.openHelp('agent_def')" class="text-blue-500 p-1 bg-white rounded-full border border-blue-200 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button></div><div class="grid ${showResults ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-2">${showResults ? `<select id="p1s" class="text-xs p-2 rounded bg-white border"><option value="Neutre">${t('st_none')}</option><option value="Guanya">${t('st_win')}</option><option value="Perd">${t('st_lose')}</option></select>` : ''}<select id="p1x" class="text-xs p-2 rounded bg-white border"><option value="M">${t('opt_masc')}</option><option value="F">${t('opt_fem')}</option></select></div><input id="p1d" class="w-full text-xs p-2 rounded border" placeholder="${t('lbl_desc_act')}"></div><div class="bg-orange-50 p-3 rounded-lg border border-orange-100"><div class="flex items-center justify-between mb-2"><h3 class="font-bold text-orange-800 text-xs">${t('lbl_p2')}</h3><button onclick="window.openHelp('reaction_def')" class="text-orange-500 p-1 bg-white rounded-full border border-orange-200 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button></div><div class="grid ${showResults ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-2">${showResults ? `<select id="p2s" class="text-xs p-2 rounded bg-white border"><option value="Neutre">${t('st_none')}</option><option value="Guanya">${t('st_win')}</option><option value="Perd">${t('st_lose')}</option></select>` : ''}<select id="p2x" class="text-xs p-2 rounded bg-white border"><option value="M">${t('opt_masc')}</option><option value="F">${t('opt_fem')}</option></select></div><input id="p2d" class="w-full text-xs p-2 rounded border" placeholder="${t('lbl_desc_reac')}"></div><button onclick="window.saveParticipants()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">${t('btn_continue')}</button></div>`;
+                html = `<div class="w-full max-w-md space-y-4 animate-in"><h2 class="text-lg font-bold text-slate-800 text-center">${t('part_title')}</h2><div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><div class="flex items-center justify-between mb-2"><h3 class="font-bold text-blue-800 text-xs">${t('lbl_p1')}</h3><button onclick="window.openHelp('agent_def')" class="text-blue-500 p-1 bg-white rounded-full border border-blue-200 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button></div><div class="grid ${showResults ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-2">${showResults ? `<select id="p1s" class="text-xs p-2 rounded bg-white border"><option value="${t('st_none')}">${t('st_none')}</option><option value="${t('st_win')}">${t('st_win')}</option><option value="${t('st_lose')}">${t('st_lose')}</option></select>` : ''}<select id="p1x" class="text-xs p-2 rounded bg-white border"><option value="M">${t('opt_masc')}</option><option value="F">${t('opt_fem')}</option></select></div><input id="p1d" class="w-full text-xs p-2 rounded border" placeholder="${t('lbl_desc_act')}"></div><div class="bg-orange-50 p-3 rounded-lg border border-orange-100"><div class="flex items-center justify-between mb-2"><h3 class="font-bold text-orange-800 text-xs">${t('lbl_p2')}</h3><button onclick="window.openHelp('reaction_def')" class="text-orange-500 p-1 bg-white rounded-full border border-orange-200 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button></div><div class="grid ${showResults ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-2">${showResults ? `<select id="p2s" class="text-xs p-2 rounded bg-white border"><option value="${t('st_none')}">${t('st_none')}</option><option value="${t('st_win')}">${t('st_win')}</option><option value="${t('st_lose')}">${t('st_lose')}</option></select>` : ''}<select id="p2x" class="text-xs p-2 rounded bg-white border"><option value="M">${t('opt_masc')}</option><option value="F">${t('opt_fem')}</option></select></div><input id="p2d" class="w-full text-xs p-2 rounded border" placeholder="${t('lbl_desc_reac')}"></div><button onclick="window.saveParticipants()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">${t('btn_continue')}</button></div>`;
             } else if (step === 'conflict_action_main') {
                  html = createSelectionScreen(t('act_q'), [{ l: t('cat_verbal'), v: 1, fn: "window.selectActionCat(1)" }, { l: t('cat_mismatch'), v: 2, fn: "window.selectActionCat(2)" }, { l: t('cat_perverse'), v: 3, fn: "window.selectActionCat(3)" }], null, t('lbl_p1'));
             } else if (step === 'conflict_action_sub') {
@@ -580,8 +571,7 @@
                 else if (cat === 2) { opts = [{k:'sub_m1', v:1}, {k:'sub_m2', v:2}]; prevChoice = t('cat_mismatch'); }
                 else { opts = [{k:'sub_p1', v:1}, {k:'sub_p2', v:2}, {k:'sub_p3', v:3}, {k:'sub_p4', v:4}]; prevChoice = t('cat_perverse'); }
                 
-                // Mostrem l'elecció anterior com a títol i un subtítol per al detall
-                html = createSelectionScreen(prevChoice, opts.map(o => ({ l: t(o.k), fn: `window.selectActionSub(${o.v}, '${o.k}')` })), null, `Detall de l'acció (${t('lbl_p1')})`);
+                html = createSelectionScreen(prevChoice, opts.map(o => ({ l: t(o.k), fn: `window.selectActionSub(${o.v}, '${o.k}')` })), null, `${t('lbl_action_detail')} (${t('lbl_p1')})`);
             } else if (step === 'conflict_reaction') {
                 html = createSelectionScreen(t('reac_q'), [{ l: t('reac_verb'), v: 1, fn: `window.selectReaction(1, 'reac_verb')` }, { l: t('reac_phys'), v: 2, fn: `window.selectReaction(2, 'reac_phys')` }, { l: t('reac_mix'), v: 3, fn: `window.selectReaction(3, 'reac_mix')` }], null, t('lbl_p2'));
             } else if (step === 'calc_result') {
@@ -590,12 +580,12 @@
                 if (score === 4) { color = "bg-yellow-400"; textCol = "text-yellow-600"; lvl = t('th_med'); height = "66%"; }
                 if (score >= 5) { color = "bg-red-500"; textCol = "text-red-600"; lvl = t('th_high'); height = "100%"; }
                 if(state.data.consent) window.saveToCloud();
-                html = `<div class="text-center w-full animate-in pb-10"><h2 class="text-xl font-bold text-slate-800 mb-6">${t('final_res_title')}</h2><div class="flex items-end justify-center gap-8 mb-6"><div class="relative w-16 h-48 bg-slate-200 rounded-full border-4 border-slate-300 p-1 flex flex-col justify-end"><div class="w-full ${color} rounded-full transition-all duration-1000" style="height: ${height}"></div><div class="absolute -top-3 left-0 w-full text-center font-bold text-sm bg-white rounded shadow-sm border border-slate-100 py-0.5">${score}/6</div></div><div class="flex-1 bg-white p-4 rounded-xl shadow-lg border text-left space-y-3"><div><p class="text-xs text-slate-400 uppercase font-bold">${t('final_type')}</p><p class="text-2xl font-bold text-blue-900">${state.data.conflictType}</p></div><div class="py-2 border-t border-b border-slate-100"><p class="text-[10px] text-slate-400 uppercase font-bold mb-1">${t('lbl_res_desc')}</p><div class="mb-1"><span class="font-semibold text-slate-500">${t('res_action')}</span> <span class="text-xs text-slate-700 block">${state.data.actionText}</span></div><div><span class="font-semibold text-slate-500">${t('res_reaction')}</span> <span class="text-xs text-slate-700 block">${state.data.reactionText}</span></div></div><div><p class="text-xs text-slate-400 uppercase font-bold">Nivell</p><p class="text-lg font-bold ${textCol}">${lvl}</p></div><div><p class="text-xs text-slate-400 uppercase font-bold">${t('final_gender')}</p><p class="text-sm font-semibold text-slate-700">${state.data.genderMix}</p></div></div></div><div id="save-msg" class="hidden mb-4 p-2 bg-green-50 text-green-700 text-xs rounded border border-green-200">${t('saved')}</div><div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6"><p class="text-sm text-blue-900 font-bold mb-3">${t('lbl_another_conflict')}</p><div class="grid gap-2"><button onclick="window.nextConflict()" class="w-full bg-white text-blue-700 border border-blue-200 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition">${t('btn_new_conflict')}</button><button onclick="window.finishSession()" class="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">${t('btn_end_session')}</button></div></div></div>`;
+                html = `<div class="text-center w-full animate-in pb-10"><h2 class="text-xl font-bold text-slate-800 mb-6">${t('final_res_title')}</h2><div class="flex items-end justify-center gap-8 mb-6"><div class="relative w-16 h-48 bg-slate-200 rounded-full border-4 border-slate-300 p-1 flex flex-col justify-end"><div class="w-full ${color} rounded-full transition-all duration-1000" style="height: ${height}"></div><div class="absolute -top-3 left-0 w-full text-center font-bold text-sm bg-white rounded shadow-sm border border-slate-100 py-0.5">${score}/6</div></div><div class="flex-1 bg-white p-4 rounded-xl shadow-lg border text-left space-y-3"><div><p class="text-xs text-slate-400 uppercase font-bold">${t('final_type')}</p><p class="text-2xl font-bold text-blue-900">${state.data.conflictType}</p></div><div class="py-2 border-t border-b border-slate-100"><p class="text-[10px] text-slate-400 uppercase font-bold mb-1">${t('lbl_res_desc')}</p><div class="mb-1"><span class="font-semibold text-slate-500">${t('res_action')}</span> <span class="text-xs text-slate-700 block">${state.data.actionText}</span></div><div><span class="font-semibold text-slate-500">${t('res_reaction')}</span> <span class="text-xs text-slate-700 block">${state.data.reactionText}</span></div></div><div><p class="text-xs text-slate-400 uppercase font-bold">${t('lbl_level')}</p><p class="text-lg font-bold ${textCol}">${lvl}</p></div><div><p class="text-xs text-slate-400 uppercase font-bold">${t('final_gender')}</p><p class="text-sm font-semibold text-slate-700">${state.data.genderMix}</p></div></div></div><div id="save-msg" class="hidden mb-4 p-2 bg-green-50 text-green-700 text-xs rounded border border-green-200">${t('saved')}</div><div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6"><p class="text-sm text-blue-900 font-bold mb-3">${t('lbl_another_conflict')}</p><div class="grid gap-2"><button onclick="window.nextConflict()" class="w-full bg-white text-blue-700 border border-blue-200 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition">${t('btn_new_conflict')}</button><button onclick="window.finishSession()" class="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">${t('btn_end_session')}</button></div></div></div>`;
             } else if (step === 'session_summary') {
                 const history = state.data.sessionHistory; const total = history.length;
                 let genders = { [t('gen_mm')]: 0, [t('gen_ff')]: 0, [t('gen_mf')]: 0, [t('gen_fm')]: 0 };
                 if (total > 0) history.forEach(h => { if (genders[h.gender] !== undefined) genders[h.gender]++; });
-                const tableRows = history.map((h, index) => `<tr class="border-b last:border-0 hover:bg-slate-50"><td class="p-3 text-xs font-bold text-blue-900"><span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full text-[10px]">${h.type.replace('Tipus ', '')}</span></td><td class="p-3 text-xs text-slate-600">${h.action}</td></tr>`).join('');
+                const tableRows = history.map((h, index) => `<tr class="border-b last:border-0 hover:bg-slate-50"><td class="p-3 text-xs font-bold text-blue-900"><span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full text-[10px]">${h.type.replace(t('lbl_type_prefix') + ' ', '')}</span></td><td class="p-3 text-xs text-slate-600">${h.action}</td></tr>`).join('');
                 html = `<div class="text-center w-full animate-in py-6">${getProfessorAvatar("large", "happy")}<h2 class="text-2xl font-bold text-slate-800 mb-2">${t('session_report_title')}</h2><p class="text-slate-600 mb-6 text-sm">${t('session_report_text')}</p><div class="grid grid-cols-1 gap-4 mb-6 max-w-sm mx-auto"><div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center"><span class="text-xs text-slate-400 uppercase font-bold">${t('session_count')}</span><span class="text-3xl font-bold text-blue-600">${total}</span></div></div><div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left mb-6 max-w-sm mx-auto"><h4 class="text-[10px] font-bold text-slate-500 uppercase mb-3 border-b pb-2">${t('lbl_gender_breakdown')}</h4><div class="space-y-2 text-xs"><div class="flex justify-between items-center border-b last:border-0 pb-1"><span class="text-slate-600">${t('gen_mm')}</span><span class="font-bold text-slate-800">${genders[t('gen_mm')] || 0}</span></div><div class="flex justify-between items-center border-b last:border-0 pb-1"><span class="text-slate-600">${t('gen_ff')}</span><span class="font-bold text-slate-800">${genders[t('gen_ff')] || 0}</span></div><div class="flex justify-between items-center border-b last:border-0 pb-1"><span class="text-slate-600">${t('gen_mf')}</span><span class="font-bold text-slate-800">${genders[t('gen_mf')] || 0}</span></div><div class="flex justify-between items-center border-b last:border-0 pb-1"><span class="text-slate-600">${t('gen_fm')}</span><span class="font-bold text-slate-800">${genders[t('gen_fm')] || 0}</span></div></div></div><div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 text-left max-w-sm mx-auto"><div class="max-h-60 overflow-y-auto custom-scrollbar"><table class="w-full"><thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold sticky top-0"><tr><th class="p-2 text-left w-16">${t('tbl_type')}</th><th class="p-2 text-left">${t('tbl_action')}</th></tr></thead><tbody class="divide-y">${tableRows}</tbody></table></div></div><p class="text-xs text-slate-400 italic mb-6 text-center">${t('session_contact')}</p><button onclick="window.location.reload()" class="w-full max-w-xs bg-slate-800 text-white p-3 rounded-lg font-bold shadow-lg hover:bg-slate-900 transition-colors">${t('session_new_btn')}</button></div>`;
             }
             container.innerHTML = html;
@@ -608,7 +598,11 @@
             return `<div class="w-full max-w-md animate-in">${getProfessorAvatar("small", "neutral")}<div class="text-center mb-6"><div class="flex items-center justify-center gap-2"><h2 class="text-lg font-bold text-slate-800">${title}</h2>${helpType ? `<button onclick="window.openHelp('${helpType}')" class="text-blue-500 p-1 bg-blue-50 rounded-full border border-blue-100"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>` : ''}</div>${subtitle ? `<p class="text-lg text-blue-700 font-bold mt-1">${subtitle}</p>` : ''}</div><div class="grid gap-3">${options.map(o => `<button onclick="${o.fn}" class="w-full text-left px-5 py-4 bg-white border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all group flex items-center justify-between"><span class="font-medium text-slate-700 group-hover:text-blue-700 text-sm">${o.l}</span><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 group-hover:text-blue-500 flex-shrink-0"><path d="m9 18 6-6-6-6"/></svg></button>`).join('')}</div></div>`;
         }
 
-        document.addEventListener('DOMContentLoaded', () => { render(); if (typeof lucide !== 'undefined') lucide.createIcons(); });
+        document.addEventListener('DOMContentLoaded', () => { 
+            updateStaticUI();
+            render(); 
+            if (typeof lucide !== 'undefined') lucide.createIcons(); 
+        });
     </script>
 </body>
 </html>
