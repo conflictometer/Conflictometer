@@ -215,13 +215,13 @@
                 saved: "✓ Dades guardades", saved_offline: "⚠ Guardat al mòbil (Pendent d'enviar)",
                 lbl_another_conflict: "Hi ha hagut un altre conflicte en aquesta sessió?", btn_new_conflict: "Sí (Registrar nou)", btn_end_session: "No (Finalitzar)",
                 session_report_title: "Resum de la Sessió", session_report_text: "Sessió finalitzada correctament. Gràcies per la teva col·laboració!", session_count: "Conflictes registrats:", session_new_btn: "Nova Sessió",
-                session_contact: "per a més informació contactar amb: <a href='mailto:paulaplapla98@gmail.com' class='underline text-blue-600'>paulaplapla98@gmail.com</a>",
+                session_contact: "per a més informació contactar amb: <a href='mailto:[Author names removed for blinded review]' class='underline text-blue-600'>[Author names removed for blinded review]</a>",
                 th_low: "Baixa Conflictivitat", th_med: "Mitjana Conflictivitat", th_high: "Alta Conflictivitat",
                 lbl_avg_temp: "Mitjana Termòmetre", lbl_gender_breakdown: "Per Gènere", gender_m: "Masc (H-H)", gender_f: "Fem (D-D)", gender_x: "Mixte (H-D)",
                 lbl_table_title: "Detall de Conflictes", tbl_type: "Tipus", tbl_action: "Acció",
                 lbl_action_detail: "Detall de l'acció", lbl_level: "Nivell", ph_group: "3r A, Grup Blau...", lbl_type_prefix: "Tipus",
                 alert_fill_all: "Si us plau, omple tots els camps.", alert_consent: "Has d'acceptar el consentiment.", alert_group: "Si us plau, indica el grup/classe.", alert_desc: "Si us plau, descriu l'acció i la reacció.",
-                status_syncing: "Sincronitzant...", status_pending: "Pendent: ", status_online: "Online (Sincronitzat)", lbl_loading: "Carregant...", lbl_guide: "Guia", btn_close: "Tancar", btn_back: "Enrere", btn_home: "Inici", footer_credits: "Creat per Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)"
+                status_syncing: "Sincronitzant...", status_pending: "Pendent: ", status_online: "Online (Sincronitzat)", lbl_loading: "Carregant...", lbl_guide: "Guia", btn_close: "Tancar", btn_back: "Enrere", btn_home: "Inici", footer_credits: "Creat per [Author names removed for blinded review] (2026)"
             },
             es: {
                 app_name: "Conflictometer",
@@ -254,13 +254,13 @@
                 saved: "✓ Datos guardados", saved_offline: "⚠ Guardado en móvil (Pendiente enviar)",
                 lbl_another_conflict: "¿Ha habido otro conflicto en esta sesión?", btn_new_conflict: "Sí (Registrar nuevo)", btn_end_session: "No (Finalizar)",
                 session_report_title: "Resumen de Sesión", session_report_text: "Sesión finalizada correctamente. ¡Gracias por tu colaboración!", session_count: "Conflictos registrados:", session_new_btn: "Nueva Sesión",
-                session_contact: "para más información contactar con: <a href='mailto:paulaplapla98@gmail.com' class='underline text-blue-600'>paulaplapla98@gmail.com</a>",
+                session_contact: "para más información contactar con: <a href='mailto:[Author names removed for blinded review]' class='underline text-blue-600'>[Author names removed for blinded review]</a>",
                 th_low: "Baja Conflictividad", th_med: "Media Conflictividad", th_high: "Alta Conflictividad",
                 lbl_avg_temp: "Media Termómetro", lbl_gender_breakdown: "Por Género", gender_m: "Masc (H-H)", gender_f: "Fem (M-M)", gender_x: "Mixto (H-M)",
                 lbl_table_title: "Detalle de Conflictos", tbl_type: "Tipo", tbl_action: "Acción",
                 lbl_action_detail: "Detalle de la acción", lbl_level: "Nivel", ph_group: "3º A, Grupo Azul...", lbl_type_prefix: "Tipo",
                 alert_fill_all: "Por favor, rellena todos los campos.", alert_consent: "Debes aceptar el consentimiento.", alert_group: "Por favor, indica el grupo/clase.", alert_desc: "Por favor, describe la acción y la reacción.",
-                status_syncing: "Sincronizando...", status_pending: "Pendiente: ", status_online: "Online (Sincronizado)", lbl_loading: "Cargando...", lbl_guide: "Guía", btn_close: "Cerrar", btn_back: "Atrás", btn_home: "Inicio", footer_credits: "Creado por Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)"
+                status_syncing: "Sincronizando...", status_pending: "Pendiente: ", status_online: "Online (Sincronizado)", lbl_loading: "Cargando...", lbl_guide: "Guía", btn_close: "Cerrar", btn_back: "Atrás", btn_home: "Inicio", footer_credits: "Creado por [Author names removed for blinded review] (2026)"
             },
             en: {
                 app_name: "Conflictometer",
@@ -293,13 +293,13 @@
                 saved: "✓ Data saved", saved_offline: "⚠ Saved offline",
                 lbl_another_conflict: "Was there another conflict in this session?", btn_new_conflict: "Yes (Register new)", btn_end_session: "No (Finish)",
                 session_report_title: "Session Summary", session_report_text: "Session finished successfully. Thank you for your collaboration!", session_count: "Conflicts registered:", session_new_btn: "New Session",
-                session_contact: "info: <a href='mailto:paulaplapla98@gmail.com' class='underline text-blue-600'>paulaplapla98@gmail.com</a>",
+                session_contact: "info: <a href='mailto:[Author names removed for blinded review]' class='underline text-blue-600'>[Author names removed for blinded review]</a>",
                 th_low: "Low Conflict", th_med: "Medium Conflict", th_high: "High Conflict",
                 lbl_avg_temp: "Thermometer Average", lbl_gender_breakdown: "By Gender", gender_m: "Male (M-M)", gender_f: "Female (F-F)", gender_x: "Mixed (M-F)",
                 lbl_table_title: "Conflict Details", tbl_type: "Type", tbl_action: "Action",
                 lbl_action_detail: "Action details", lbl_level: "Level", ph_group: "3rd Grade, Blue Group...", lbl_type_prefix: "Type",
                 alert_fill_all: "Please fill in all fields.", alert_consent: "You must accept the consent.", alert_group: "Please indicate the group/class.", alert_desc: "Please describe the action and reaction.",
-                status_syncing: "Syncing...", status_pending: "Pending: ", status_online: "Online (Synced)", lbl_loading: "Loading...", lbl_guide: "Guide", btn_close: "Close", btn_back: "Back", btn_home: "Home", footer_credits: "Created by Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)"
+                status_syncing: "Syncing...", status_pending: "Pending: ", status_online: "Online (Synced)", lbl_loading: "Loading...", lbl_guide: "Guide", btn_close: "Close", btn_back: "Back", btn_home: "Home", footer_credits: "Created by [Author names removed for blinded review] (2026)"
             },
             fr: {
                 app_name: "Conflictometer",
@@ -332,13 +332,13 @@
                 saved: "✓ Données enregistrées", saved_offline: "⚠ Enregistré localement (En attente)",
                 lbl_another_conflict: "Y a-t-il eu un autre conflit dans cette session ?", btn_new_conflict: "Oui (Enregistrer nouveau)", btn_end_session: "Non (Terminer)",
                 session_report_title: "Résumé de la session", session_report_text: "Session terminée avec succès. Merci pour votre collaboration !", session_count: "Conflits enregistrés :", session_new_btn: "Nouvelle Session",
-                session_contact: "info : <a href='mailto:paulaplapla98@gmail.com' class='underline text-blue-600'>paulaplapla98@gmail.com</a>",
+                session_contact: "info : <a href='mailto:[Author names removed for blinded review]' class='underline text-blue-600'>[Author names removed for blinded review]</a>",
                 th_low: "Faible Conflit", th_med: "Conflit Moyen", th_high: "Fort Conflit",
                 lbl_avg_temp: "Moyenne Thermomètre", lbl_gender_breakdown: "Par Genre", gender_m: "Masc (H-H)", gender_f: "Fém (F-F)", gender_x: "Mixte (H-F)",
                 lbl_table_title: "Détails des conflits", tbl_type: "Type", tbl_action: "Action",
                 lbl_action_detail: "Détail de l'action", lbl_level: "Niveau", ph_group: "3ème A, Groupe Bleu...", lbl_type_prefix: "Type",
                 alert_fill_all: "Veuillez remplir tous les champs.", alert_consent: "Vous devez accepter le consentement.", alert_group: "Veuillez indiquer le groupe/classe.", alert_desc: "Veuillez décrire l'action et la réaction.",
-                status_syncing: "Synchronisation...", status_pending: "En attente : ", status_online: "En ligne (Synchronisé)", lbl_loading: "Chargement...", lbl_guide: "Guide", btn_close: "Fermer", btn_back: "Retour", btn_home: "Accueil", footer_credits: "Créé par Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)"
+                status_syncing: "Synchronisation...", status_pending: "En attente : ", status_online: "En ligne (Synchronisé)", lbl_loading: "Chargement...", lbl_guide: "Guide", btn_close: "Fermer", btn_back: "Retour", btn_home: "Accueil", footer_credits: "Créé par [Author names removed for blinded review] (2026)"
             }
         };
 
