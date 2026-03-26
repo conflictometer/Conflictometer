@@ -114,7 +114,7 @@
 
         <footer class="bg-slate-50/80 p-4 text-center text-xs text-slate-400 border-t">
             <div class="footer-credits">
-                <p class="font-bold text-slate-600" id="footer-credits-text">Creat per Pla-Pla, Lavega-Burgués & Sáez de Ocáriz (2026)</p>
+                <p class="font-bold text-slate-600" id="footer-credits-text">Creat per [Author names removed for blinded review] (2026)</p>
                 <div class="flex items-center justify-center gap-2 mt-2 opacity-70">
                     <img src="logo giam.jpg" alt="GIAM" class="h-6 object-contain">
                     <div id="connection-status" class="text-[9px]">...</div>
